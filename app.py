@@ -1,6 +1,7 @@
 # Imports 
 import os
 import json
+import psycopg2
 import pickle
 import joblib
 import pandas as pd
@@ -14,8 +15,9 @@ from playhouse.db_url import connect
 
 
 ## Database Setup
-database_url = 'postgres://fbybnfafgnijld:e62e21920f6f5fcfae74d2b238ab8f75a425e9f9ab3247072892ad7ba8233e7f@ec2-54-216-17-9.eu-west-1.compute.amazonaws.com:5432/d793pql65pq064'
-DB = connect(os.environ.get(database_url) or 'sqlite:///predictions.db')
+DATABASE_URL = os.environ['DATABASE_URL']
+
+DB = connect(DATABASE_URL or 'sqlite:///predictions.db')
 
 class Prediction(Model):
     observation_id = IntegerField(unique=True)
