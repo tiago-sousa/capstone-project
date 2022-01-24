@@ -203,7 +203,7 @@ def predict():
     except IntegrityError:
         error_msg = "ERROR: Observation ID: '{}' already exists".format(_id)
         response["error"] = error_msg
-        DB.rollback()
+        db.rollback()
         r = Request(request = obs_dict, response = response, status = 'Error')
         r.save()
         
