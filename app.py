@@ -1,3 +1,4 @@
+# Imports 
 import os
 import json
 import pickle
@@ -11,9 +12,10 @@ from peewee import (
 from playhouse.shortcuts import model_to_dict
 from playhouse.db_url import connect
 
-## Database Stuff
 
-DB = connect(os.environ.get('DATABASE_URL') or 'sqlite:///predictions.db')
+## Database Setup
+database_url = 'postgres://fbybnfafgnijld:e62e21920f6f5fcfae74d2b238ab8f75a425e9f9ab3247072892ad7ba8233e7f@ec2-54-216-17-9.eu-west-1.compute.amazonaws.com:5432/d793pql65pq064'
+DB = connect(os.environ.get(database_url) or 'sqlite:///predictions.db')
 
 class Prediction(Model):
     observation_id = IntegerField(unique=True)
@@ -61,7 +63,6 @@ def predict():
     except IntegrityError:
         error_msg = "ERROR: Observation ID: '{}' already exists".format(_id)
         response["error"] = error_msg
-        print(error_msg)
         DB.rollback()
     return jsonify(response)
 
