@@ -15,9 +15,7 @@ from playhouse.db_url import connect
 
 
 ## Database Setup
-DATABASE_URL = os.environ['DATABASE_URL']
-
-DB = connect(DATABASE_URL or 'sqlite:///predictions.db')
+DB = psycopg2.connect(os.environ['DATABASE_URL'] or 'sqlite:///predictions.db')
 
 class Prediction(Model):
     observation_id = IntegerField(unique=True)
