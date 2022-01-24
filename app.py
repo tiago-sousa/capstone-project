@@ -76,7 +76,7 @@ def predict():
     #proba = pipeline.predict_proba(obs)[0, 1]
     #prediction = pipeline.predict(obs)[0]
     #response = {'observation_id': _id, 'prediction': bool(prediction), 'probability': proba}
-    return request.get_json() #jsonify(response)
+    return "test"
     
 
 @app.route('/update', methods=['POST'])
