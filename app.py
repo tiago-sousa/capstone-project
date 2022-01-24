@@ -76,7 +76,7 @@ def check_request(request):
         - assertion value: True if request is ok, False otherwise
         - error message: empty if request is ok, False otherwise
     """
-    
+    print(request)
     if "id" not in request:
         request.update({"id": None})
         error = "Field `id` missing from request: {}".format(request)
@@ -125,7 +125,7 @@ def predict():
     """
 
     obs_dict = request.get_json()
-
+    print(obs_dict)
     request_ok, error = check_request(obs_dict)
     
     if not request_ok:
