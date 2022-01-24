@@ -125,13 +125,12 @@ def predict():
     """
 
     obs_dict = request.get_json()
-    print(obs_dict)
-    request_ok, error = check_request(obs_dict)
+    #request_ok, error = check_request(obs_dict)
     
-    if not request_ok:
-        response = {"observation_id": None, 'error': error}
-        print(response)
-        return jsonify(response)
+    #if not request_ok:
+    #    response = {"observation_id": None, 'error': error}
+    #    print(response)
+    #    return jsonify(response)
     
     _id = obs_dict['id']
     observation = obs_dict['observation']
