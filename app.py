@@ -45,7 +45,6 @@ class Request(BaseModel):
 def initialize_db():
     db.connect()
     db.create_tables([Prediction,Request], safe = True)
-    db.close()
     
 initialize_db() 
 
