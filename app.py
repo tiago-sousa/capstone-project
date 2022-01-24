@@ -25,27 +25,29 @@ try:
 except:
     DATABASE_URL = 'sqlite:///predictions.db' 
     
-DB = connect(DATABASE_URL)
+db = connect(DATABASE_URL)
 
-class Prediction(Model):
+class BaseModel(Model):
+    class Meta:
+        database = db
+
+class Prediction(BaseModel):
     observation_id = IntegerField(unique=True)
     observation = TextField()
     proba = FloatField()
     true_class = IntegerField(null=True)
-
-    class Meta:
-        database = DB
         
-class Request(Model):
+class Request(BaseModel):
     request = TextField()
     response = TextField()
+    status = TextField()
 
-    class Meta:
-        database = DB
-
-
-DB.create_tables([Prediction,Request], safe=True)
-
+def initialize_db():
+    db.connect()
+    db.create_tables([Prediction,Request], safe = True)
+    db.close()
+    
+initialize_db() 
 
 # End database setup
 ########################################
@@ -173,11 +175,7 @@ def predict():
     request_ok, error = check_request_id(obs_dict)
     if not request_ok:
         response = {'id': None,'error': error}
-        
-        r = Request(
-        request=obs_dict,
-        response=response
-        )
+        r = Request(request = obs_dict, response = response, status = 'Error')
         r.save()
         return response
 
@@ -186,12 +184,7 @@ def predict():
     request_ok, error = check_request_observation(obs_dict)
     if not request_ok:
         response = {'id': _id,'error': error}
-        
-        r = Request(
-        request=obs_dict,
-        response=response
-        )
-        
+        r = Request(request = obs_dict, response = response, status = 'Error')
         r.save()
         return response
     
@@ -201,22 +194,17 @@ def predict():
     proba = pipeline.predict_proba(obs)[0, 1]
     response = {'proba': proba}
     
-    p = Prediction(
-        observation_id=_id,
-        proba=proba,
-        observation=request.data
-    )
+    p = Prediction(observation_id=_id, proba=proba, observation=request.data)
     
     try:
+        r = Request(request=obs_dict, response=response, status = 'Success')
         p.save()
+        r.save()
     except IntegrityError:
         error_msg = "ERROR: Observation ID: '{}' already exists".format(_id)
         response["error"] = error_msg
         DB.rollback()
-        r = Request(
-        request=obs_dict,
-        response=response
-        )
+        r = Request(request = obs_dict, response = response, status = 'Error')
         r.save()
         
     return jsonify(response)
