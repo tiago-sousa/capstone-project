@@ -5,10 +5,7 @@ import pickle
 import joblib
 import pandas as pd
 from flask import Flask, jsonify, request
-from peewee import (
-    BooleanField, Model, IntegerField, FloatField,
-    TextField, IntegrityError
-)
+from peewee import BooleanField, Model, IntegerField, FloatField, TextField, IntegrityError
 from playhouse.shortcuts import model_to_dict
 from playhouse.db_url import connect
 from utils import custom_transformers
@@ -84,6 +81,15 @@ def predict():
 
 @app.route('/update', methods=['POST'])
 def update():
+    obs = request.get_json()
+    try:
+        p = Prediction.get(Prediction.observation_id == obs['observation_id'])
+        p.true_class = obs['prediction']
+        p.save()
+        return jsonify(model_to_dict(p))
+    except Prediction.DoesNotExist:
+        error_msg = 'Observation ID: "{}" does not exist'.format(obs['id'])
+        return jsonify({'error': error_msg})
     
 # End webserver stuff
 ########################################
