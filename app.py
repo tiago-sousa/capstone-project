@@ -19,7 +19,7 @@ try:
     DATABASE_URL = os.environ['DATABASE_URL']
 except:
     DATABASE_URL = 'sqlite:///predictions.db'   
-DB = psycopg2.connect(DATABASE_URL)
+DB = connect(DATABASE_URL)
 
 class Prediction(Model):
     observation_id = IntegerField(unique=True)
