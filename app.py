@@ -69,14 +69,14 @@ app = Flask(__name__)
 
 def predict():
 
-    obs_dict = request.get_json()
-    _id = obs_dict['id']
-    _observation = obs_dict['observation']
-    obs = pd.DataFrame([_observation], columns=columns).astype(dtypes)
-    proba = pipeline.predict_proba(obs)[0, 1]
-    prediction = pipeline.predict(obs)[0]
-    response = {'observation_id': _id, 'prediction': bool(prediction), 'probability': proba}
-    return jsonify(response)
+    #obs_dict = request.get_json()
+    #_id = obs_dict['id']
+    #_observation = obs_dict['observation']
+    #obs = pd.DataFrame([_observation], columns=columns).astype(dtypes)
+    #proba = pipeline.predict_proba(obs)[0, 1]
+    #prediction = pipeline.predict(obs)[0]
+    #response = {'observation_id': _id, 'prediction': bool(prediction), 'probability': proba}
+    return request.get_json() #jsonify(response)
     
 
 @app.route('/update', methods=['POST'])
