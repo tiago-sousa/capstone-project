@@ -68,12 +68,10 @@ app = Flask(__name__)
 @app.route('/predict', methods=['POST'])
 
 def predict():
-
-    prediction = 0.5
     
-    return jsonify({
-        'prediction': prediction
-    })
+    payload = request.get_json()
+    obs = payload['observation']
+    return jsonify(obs)
     
     
 
