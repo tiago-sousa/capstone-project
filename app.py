@@ -21,6 +21,7 @@ from utils import custom_transformers
 # the connect function checks if there is a DATABASE_URL env var
 # if it exists, it uses it to connect to a remote postgres db
 # otherwise, it connects to a local sqlite db stored in predictions.db
+
 DB = connect(os.environ.get('DATABASE_URL') or 'sqlite:///predictions.db')
 
 class Prediction(Model):
@@ -42,15 +43,23 @@ DB.create_tables([Prediction], safe=True)
 ########################################
 # Unpickle the previously-trained model
 
-TMP_DIR = '/tmp'
+#TMP_DIR = '/tmp'
 
-with open(os.path.join(TMP_DIR, 'columns.json'), 'r') as fh:
+#with open(os.path.join(TMP_DIR, 'columns.json'), 'r') as fh:
+    #columns = json.load(fh)
+
+#with open(os.path.join(TMP_DIR, 'dtypes.pickle'), 'rb') as fh:
+    #dtypes = pickle.load(fh)
+    
+#pipeline = joblib.load(os.path.join(TMP_DIR, 'pipeline.pickle'))          
+          
+with open('columns.json', 'r') as fh:
     columns = json.load(fh)
 
-with open(os.path.join(TMP_DIR, 'dtypes.pickle'), 'rb') as fh:
+with open('dtypes.pickle', 'rb') as fh:
     dtypes = pickle.load(fh)
     
-pipeline = joblib.load(os.path.join(TMP_DIR, 'pipeline.pickle'))          
+pipeline = joblib.load('pipeline.pickle')          
           
           
 # End model un-pickling
