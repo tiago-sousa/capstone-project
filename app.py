@@ -1,12 +1,15 @@
-import joblib
+import os
 import json
 import pickle
+import joblib
 import pandas as pd
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request
 from peewee import (
-    SqliteDatabase, Model, IntegerField,
-    FloatField, TextField,
+    Model, IntegerField, FloatField,
+    TextField, IntegrityError
 )
+from playhouse.shortcuts import model_to_dict
+from playhouse.db_url import connect
 
 ## Database Stuff
 
