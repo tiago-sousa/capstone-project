@@ -35,9 +35,17 @@ class Prediction(Model):
 
     class Meta:
         database = DB
+        
+class Request(Model):
+    request = TextField()
+    response = TextField()
+
+    class Meta:
+        database = DB
 
 
-DB.create_tables([Prediction], safe=True)
+DB.create_tables([Prediction,Request], safe=True)
+
 
 # End database setup
 ########################################
@@ -91,6 +99,63 @@ def check_request_id(request):
     
     return True, ""
 
+def check_valid_column(observation):
+    """
+        Validates that our observation only has valid columns
+        
+        Returns:
+        - assertion value: True if all provided columns are valid, False otherwise
+        - error message: empty if all provided columns are valid, False otherwise
+    """
+    
+    valid_columns = {'admission_id', 
+                     'patient_id', 
+                     'race', 
+                     'gender', 
+                     'age', 
+                     'weight',
+                     'admission_type_code', 
+                     'discharge_disposition_code',
+                     'admission_source_code', 
+                     'time_in_hospital', 
+                     'payer_code','medical_specialty',
+                     'has_prosthesis',
+                     'complete_vaccination_status',
+                     'num_lab_procedures', 
+                     'num_procedures', 
+                     'num_medications',
+                     'number_outpatient', 
+                     'number_emergency', 
+                     'number_inpatient', 
+                     'diag_1',
+                     'diag_2', 
+                     'diag_3', 
+                     'number_diagnoses', 
+                     'blood_type',
+                     'hemoglobin_level',
+                     'blood_transfusion', 
+                     'max_glu_serum', 
+                     'A1Cresult',
+                     'diuretics', 
+                     'insulin', 
+                     'change', 
+                     'diabetesMed'
+                    }
+    
+    keys = set(observation.keys())
+    
+    if len(valid_columns - keys) > 0: 
+        missing = valid_columns - keys
+        error = "Missing columns: {}".format(missing)
+        return False, error
+    
+    if len(keys - valid_columns) > 0: 
+        extra = keys - valid_columns
+        error = "Unrecognized columns provided: {}".format(extra)
+        return False, error    
+
+    return True, ""
+
 # End model un-pickling
 ########################################
 
@@ -108,6 +173,12 @@ def predict():
     request_ok, error = check_request_id(obs_dict)
     if not request_ok:
         response = {'id': None,'error': error}
+        
+        r = Request(
+        request=obs_dict,
+        response=response
+        )
+        r.save()
         return response
 
     _id = obs_dict['id']
@@ -115,13 +186,21 @@ def predict():
     request_ok, error = check_request_observation(obs_dict)
     if not request_ok:
         response = {'id': _id,'error': error}
-        return response 
+        
+        r = Request(
+        request=obs_dict,
+        response=response
+        )
+        
+        r.save()
+        return response
     
     observation = obs_dict['observation']
     
     obs = pd.DataFrame([observation], columns=columns).astype(dtypes)
     proba = pipeline.predict_proba(obs)[0, 1]
     response = {'proba': proba}
+    
     p = Prediction(
         observation_id=_id,
         proba=proba,
@@ -134,6 +213,12 @@ def predict():
         error_msg = "ERROR: Observation ID: '{}' already exists".format(_id)
         response["error"] = error_msg
         DB.rollback()
+        r = Request(
+        request=obs_dict,
+        response=response
+        )
+        r.save()
+        
     return jsonify(response)
 
 # End webserver app
