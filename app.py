@@ -8,12 +8,10 @@ import joblib
 import pandas as pd
 import datetime
 from flask import Flask, jsonify, request
-from peewee import (
-    Model, IntegerField, FloatField,
-    TextField, IntegrityError, DateTimeField, BooleanField
-)
+from peewee import  *
 from playhouse.shortcuts import model_to_dict
 from playhouse.db_url import connect
+import logging
 
 ## End imports
 ########################################
@@ -23,11 +21,16 @@ from playhouse.db_url import connect
 ## Database setup
 try:
     DATABASE_URL = os.environ['DATABASE_URL']
-except:
-    DATABASE_URL = 'sqlite:///predictions.db' 
+    db = connect(DATABASE_URL)
+    db.connect()
     
-db = connect(DATABASE_URL)
-db.connect()
+except:
+    db = SqliteDatabase('predictions.db')
+    db.connect()
+    #DATABASE_URL = 'sqlite:///predictions.db' 
+    
+
+logging.debug('db working')
 
 class BaseModel(Model):
     class Meta:
@@ -104,6 +107,8 @@ with open('dtypes.pickle', 'rb') as fh:
     dtypes = pickle.load(fh)
 
 pipeline = joblib.load('pipeline.pickle')
+
+logging.debug('unpickle working')
 
 # End model un-pickling
 ########################################
@@ -218,6 +223,7 @@ def predict():
     
     obs_dict = request.get_json()
 
+    logging.debug('get request working')
     request_ok, error_description = check_request_id(obs_dict)
     if not request_ok:
         response = {'id': None,'error': error_description}
@@ -249,7 +255,7 @@ def predict():
     
     obs = pd.DataFrame([observation], columns=columns).astype(dtypes)
     probability = pipeline.predict_proba(obs)[0, 1]
-    prediction = pipeline.predict(obs) 
+    prediction = int(pipeline.predict(obs) [0])
     response = {'id':_id, 'probability': probability, 'prediction':prediction}
     
     p = Prediction(observation_id=_id, probability=probability, prediction=prediction, observation=observation)
