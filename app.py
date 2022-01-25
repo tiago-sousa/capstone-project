@@ -39,14 +39,55 @@ class Prediction(BaseModel):
     proba = FloatField()
     true_class = IntegerField(null=True)
     created_date = DateTimeField(default=datetime.datetime.now)
+    modified_date = DateTimeField(null=True)
         
 class Request(BaseModel):
     request = TextField()
     response = TextField()
     status = TextField()
+    endpoint = TextField()
     created_date = DateTimeField(default=datetime.datetime.now)
+    
+class Data(BaseModel):
+    observation_id = IntegerField(unique=True)
+    created_date = DateTimeField(default=datetime.datetime.now)
+    modified_date = DateTimeField(null=True)
+    admission_id = TextField(null=True)
+    patient_id = TextField(null=True)
+    race = TextField(null=True)
+    gender = TextField(null=True)
+    age = TextField(null=True)
+    weight = TextField(null=True)
+    admission_type_code = TextField(null=True)
+    discharge_disposition_code = TextField(null=True)
+    admission_source_code = TextField(null=True)
+    time_in_hospital = TextField(null=True)
+    payer_code = TextField(null=True)
+    medical_specialty = TextField(null=True)
+    has_prosthesis = TextField(null=True)
+    complete_vaccination_status = TextField(null=True)
+    num_lab_procedures = TextField(null=True)
+    num_procedures = TextField(null=True)
+    num_medications = TextField(null=True)
+    number_outpatient = TextField(null=True)
+    number_emergency = TextField(null=True)
+    number_inpatient = TextField(null=True)
+    diag_1 = TextField(null=True)
+    diag_2 = TextField(null=True)
+    diag_3 = TextField(null=True)
+    number_diagnoses = TextField(null=True)
+    blood_type = TextField(null=True)
+    hemoglobin_level = TextField(null=True)
+    blood_transfusion = TextField(null=True)
+    max_glu_serum = TextField(null=True)
+    A1Cresult = TextField(null=True)
+    diuretics = TextField(null=True)
+    insulin = TextField(null=True)
+    change = TextField(null=True)
+    diabetesMed = TextField(null=True)
+    readmitted = TextField(null=True)
 
-db.create_tables([Prediction,Request], safe = True)
+db.create_tables([Prediction, Request, Data], safe = True)
 
 # End database setup
 ########################################
@@ -174,7 +215,7 @@ def predict():
     request_ok, error = check_request_id(obs_dict)
     if not request_ok:
         response = {'id': None,'error': error}
-        r = Request(request = obs_dict, response = response, status = 'Error', datetime=datetime.datetime.now)
+        r = Request(request=obs_dict, response=response, endpoint='predict', status='error')
         r.save()
         return response
 
@@ -183,7 +224,7 @@ def predict():
     request_ok, error = check_request_observation(obs_dict)
     if not request_ok:
         response = {'id': _id,'error': error}
-        r = Request(request = obs_dict, response = response, status = 'Error')
+        r = Request(request=obs_dict, response=response, endpoint='predict', status='error')
         r.save()
         return response
     
@@ -196,17 +237,39 @@ def predict():
     p = Prediction(observation_id=_id, proba=proba, observation=request.data)
     
     try:
-        r = Request(request=obs_dict, response=response, status = 'Success')
+        r = Request(request=obs_dict, response=response, endpoint='predict', status='success')
         p.save()
         r.save()
     except IntegrityError:
         error_msg = "ERROR: Observation ID: '{}' already exists".format(_id)
         response["error"] = error_msg
         db.rollback()
-        r = Request(request = obs_dict, response = response, status = 'Error')
+        r = Request(request = obs_dict, response = response, endpoint = 'predict', status = 'error')
         r.save()
         
     return jsonify(response)
+
+@app.route('/update', methods=['POST'])
+def update():
+    
+    obs_dict = request.get_json()
+    try:
+        p = Prediction.get(Prediction.observation_id == obs_dict['id'])
+        response = model_to_dict(p)
+        p.true_class = obs_dict['true_class']
+        p.modified_date = datetime.datetime.now()
+        p.save()
+        r = Request(request=obs_dict, response=response, endpoint='update', status='success')
+        r.save()
+        return jsonify(response)
+    
+    except Prediction.DoesNotExist:
+        error_msg = 'Observation ID: "{}" does not exist'.format(obs['id'])
+        response = {'error': error_msg}
+        r = Request(request=obs_dict, response=response, endpoint='update', status='error')
+        r.save()
+        return jsonify(response)
+
 
 # End webserver app
 ########################################
