@@ -10,7 +10,7 @@ import datetime
 from flask import Flask, jsonify, request
 from peewee import (
     Model, IntegerField, FloatField,
-    TextField, IntegrityError, DateTimeField
+    TextField, IntegrityError, DateTimeField, BooleanField
 )
 from playhouse.shortcuts import model_to_dict
 from playhouse.db_url import connect
@@ -36,8 +36,9 @@ class BaseModel(Model):
 class Prediction(BaseModel):
     observation_id = IntegerField(unique=True)
     observation = TextField()
-    proba = FloatField()
-    true_class = IntegerField(null=True)
+    prediction = BooleanField()
+    probability = FloatField()
+    true_class = BooleanField(null=True)
     created_date = DateTimeField(default=datetime.datetime.now)
     modified_date = DateTimeField(null=True)
         
@@ -121,8 +122,8 @@ def check_request_observation(request):
     """
     
     if "observation" not in request:
-        error = "Field `observation` missing from request: {}".format(request)
-        return False, error
+        error_description = "Field `observation` missing from request: {}".format(request)
+        return False, error_description
     
     return True, ""
 
@@ -136,8 +137,8 @@ def check_request_id(request):
     """
     
     if "id" not in request:
-        error = "Field `id` missing from request: {}".format(request)
-        return False, error
+        error_description = "Field `id` missing from request: {}".format(request)
+        return False, error_description
     
     return True, ""
 
@@ -188,15 +189,17 @@ def check_valid_column(observation):
     
     if len(valid_columns - keys) > 0: 
         missing = valid_columns - keys
-        error = "Missing columns: {}".format(missing)
-        return False, error
+        error_description = "Missing columns: {}".format(missing)
+        error_type = "failure"
+        return False, error_description, error_type
     
     if len(keys - valid_columns) > 0: 
         extra = keys - valid_columns
-        error = "Unrecognized columns provided: {}".format(extra)
-        return False, error    
+        error_description = "Unrecognized columns provided: {}".format(extra)
+        error_type = "warning"
+        return False, error_description , error_type   
 
-    return True, ""
+    return True, "",""
 
 # End model un-pickling
 ########################################
@@ -210,35 +213,52 @@ app = Flask(__name__)
 @app.route('/predict', methods=['POST'])
 def predict():
     
+    warning = False
+    warning_description = ""
+    
     obs_dict = request.get_json()
-  
-    request_ok, error = check_request_id(obs_dict)
+
+    request_ok, error_description = check_request_id(obs_dict)
     if not request_ok:
-        response = {'id': None,'error': error}
+        response = {'id': None,'error': error_description}
         r = Request(request=obs_dict, response=response, endpoint='predict', status='error')
         r.save()
         return response
 
     _id = obs_dict['id']
     
-    request_ok, error = check_request_observation(obs_dict)
+    request_ok, error_description = check_request_observation(obs_dict)
     if not request_ok:
-        response = {'id': _id,'error': error}
+        response = {'id': _id,'error': error_description}
         r = Request(request=obs_dict, response=response, endpoint='predict', status='error')
         r.save()
         return response
     
     observation = obs_dict['observation']
     
-    obs = pd.DataFrame([observation], columns=columns).astype(dtypes)
-    proba = pipeline.predict_proba(obs)[0, 1]
-    response = {'proba': proba}
+    request_ok, error_description, error_type = check_valid_column(observation)
+    if not request_ok and error_type=='failure':
+        response = {'id': _id,'error': error_description}
+        r = Request(request=obs_dict, response=response, endpoint='predict', status='error')
+        r.save()
+        return response    
     
-    p = Prediction(observation_id=_id, proba=proba, observation=observation)
+    if not request_ok and error_type=='warning':
+        warning_description = error_description
+        warning = True
+    
+    obs = pd.DataFrame([observation], columns=columns).astype(dtypes)
+    probability = pipeline.predict_proba(obs)[0, 1]
+    prediction = pipeline.predict(obs) 
+    response = {'id':_id, 'probability': probability, 'prediction':prediction}
+    
+    p = Prediction(observation_id=_id, probability=probability, prediction=prediction, observation=observation)
     
     try:
-        r = Request(request=obs_dict, response=response, endpoint='predict', status='success')
         p.save()
+        r = Request(request=obs_dict, response=response, endpoint='predict', status='success')
+        if warning:
+            response['warning'] = warning_description
         r.save()
     except IntegrityError:
         error_msg = "ERROR: Observation ID: '{}' already exists".format(_id)
@@ -247,7 +267,7 @@ def predict():
         r = Request(request = obs_dict, response = response, endpoint = 'predict', status = 'error')
         r.save()
         
-    return jsonify(response)
+    return response
 
 @app.route('/update', methods=['POST'])
 def update():
