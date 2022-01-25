@@ -234,7 +234,7 @@ def predict():
     proba = pipeline.predict_proba(obs)[0, 1]
     response = {'proba': proba}
     
-    p = Prediction(observation_id=_id, proba=proba, observation=request.data)
+    p = Prediction(observation_id=_id, proba=proba, observation=observation)
     
     try:
         r = Request(request=obs_dict, response=response, endpoint='predict', status='success')
@@ -255,10 +255,10 @@ def update():
     obs_dict = request.get_json()
     try:
         p = Prediction.get(Prediction.observation_id == obs_dict['id'])
-        response = model_to_dict(p)
         p.true_class = obs_dict['true_class']
         p.modified_date = datetime.datetime.now()
         p.save()
+        response = model_to_dict(p)
         r = Request(request=obs_dict, response=response, endpoint='update', status='success')
         r.save()
         return jsonify(response)
