@@ -6,10 +6,11 @@ import psycopg2
 import pickle
 import joblib
 import pandas as pd
+import datetime
 from flask import Flask, jsonify, request
 from peewee import (
     Model, IntegerField, FloatField,
-    TextField, IntegrityError
+    TextField, IntegrityError, DateTimeField
 )
 from playhouse.shortcuts import model_to_dict
 from playhouse.db_url import connect
@@ -36,11 +37,13 @@ class Prediction(BaseModel):
     observation = TextField()
     proba = FloatField()
     true_class = IntegerField(null=True)
+    created_date = DateTimeField(default=datetime.datetime.now)
         
 class Request(BaseModel):
     request = TextField()
     response = TextField()
     status = TextField()
+    created_date = DateTimeField(default=datetime.datetime.now)
 
 def initialize_db():
     db.connect()
@@ -174,7 +177,7 @@ def predict():
     request_ok, error = check_request_id(obs_dict)
     if not request_ok:
         response = {'id': None,'error': error}
-        r = Request(request = obs_dict, response = response, status = 'Error')
+        r = Request(request = obs_dict, response = response, status = 'Error', datetime=datetime.datetime.now)
         r.save()
         return response
 
