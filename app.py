@@ -264,7 +264,7 @@ def update():
         return jsonify(response)
     
     except Prediction.DoesNotExist:
-        error_msg = 'Observation ID: "{}" does not exist'.format(obs['id'])
+        error_msg = 'Observation ID: "{}" does not exist'.format(obs_dict['id'])
         response = {'error': error_msg}
         r = Request(request=obs_dict, response=response, endpoint='update', status='error')
         r.save()
