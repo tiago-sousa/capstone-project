@@ -199,6 +199,33 @@ def check_valid_column(observation):
 
     return True, "",""
 
+def check_categorical_values(observation):
+    """
+        Validates that all categorical fields are in the observation and values are valid
+        
+        Returns:
+        - assertion value: True if all provided categorical columns contain valid values, 
+                           False otherwise
+        - error message: empty if all provided columns are valid, False otherwise
+    """
+    
+    valid_category_map = {
+        "age": [None,"","[70-80)","[60-70)","[50-60)","[80-90)","[40-50)","[30-40)","[90-100)","[20-30)","[10-20)","[0-10)"],
+    }
+    
+    for key, valid_categories in valid_category_map.items():
+        if key in observation:
+            value = observation[key]
+            if value not in valid_categories:
+                error = "Invalid value provided for {}: {}. Allowed values are: {}".format(
+                    key, value, ",".join(["'{}'".format(v) for v in valid_categories]))
+                return False, error
+        #else:
+        #    error = "Categorical field {} missing"
+        #    return False, error
+
+    return True, ""
+
 # End model un-pickling
 ########################################
 
@@ -234,8 +261,8 @@ def predict():
     
     observation = obs_dict['observation']
     
-    request_ok, error_description, error_type = check_valid_column(observation)
-    if not request_ok and error_type=='failure':
+    columns_ok, error_description, error_type = check_valid_column(observation)
+    if not columns_ok and error_type=='failure':
         response = {'id': _id,'error': error_description}
         r = Request(request=obs_dict, response=response, endpoint='predict', status='error')
         r.save()
@@ -244,6 +271,13 @@ def predict():
     if not request_ok and error_type=='warning':
         warning_description = error_description
         warning = True
+    
+    categories_ok, error_description = check_categorical_values(observation)
+    if not categories_ok:
+        response = {"observation_id": _id, 'error': error_description}
+        r = Request(request=obs_dict, response=response, endpoint='predict', status='error')
+        r.save()
+        return jsonify(response)
     
     obs = pd.DataFrame([observation], columns=columns).astype(dtypes)
     probability = pipeline.predict_proba(obs)[0, 1]
