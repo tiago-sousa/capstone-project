@@ -21,16 +21,11 @@ import logging
 ## Database setup
 try:
     DATABASE_URL = os.environ['DATABASE_URL']
-    db = connect(DATABASE_URL)
-    db.connect()
-    
 except:
-    db = SqliteDatabase('predictions.db')
-    db.connect()
-    #DATABASE_URL = 'sqlite:///predictions.db' 
+    DATABASE_URL = 'sqlite:///predictions.db' 
     
-
-logging.debug('db working')
+db = connect(DATABASE_URL)
+db.connect()    
 
 class BaseModel(Model):
     class Meta:
@@ -107,8 +102,6 @@ with open('dtypes.pickle', 'rb') as fh:
     dtypes = pickle.load(fh)
 
 pipeline = joblib.load('pipeline.pickle')
-
-logging.debug('unpickle working')
 
 # End model un-pickling
 ########################################
@@ -223,7 +216,6 @@ def predict():
     
     obs_dict = request.get_json()
 
-    logging.debug('get request working')
     request_ok, error_description = check_request_id(obs_dict)
     if not request_ok:
         response = {'id': None,'error': error_description}
