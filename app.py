@@ -27,6 +27,7 @@ except:
     DATABASE_URL = 'sqlite:///predictions.db' 
     
 db = connect(DATABASE_URL)
+db.connect()
 
 class BaseModel(Model):
     class Meta:
@@ -45,11 +46,7 @@ class Request(BaseModel):
     status = TextField()
     created_date = DateTimeField(default=datetime.datetime.now)
 
-def initialize_db():
-    db.connect()
-    db.create_tables([Prediction,Request], safe = True)
-    
-initialize_db() 
+db.create_tables([Prediction,Request], safe = True)
 
 # End database setup
 ########################################
