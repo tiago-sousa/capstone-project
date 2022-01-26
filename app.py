@@ -272,12 +272,12 @@ def predict():
         warning_description = error_description
         warning = True
     
-    categories_ok, error_description = check_categorical_values(observation)
-    if not categories_ok:
-        response = {"observation_id": _id, 'error': error_description}
-        r = Request(request=obs_dict, response=response, endpoint='predict', status='error')
-        r.save()
-        return jsonify(response)
+    #categories_ok, error_description = check_categorical_values(observation)
+    #if not categories_ok:
+    #    response = {"observation_id": _id, 'error': error_description}
+    #    r = Request(request=obs_dict, response=response, endpoint='predict', status='error')
+    #    r.save()
+    #    return response
     
     obs = pd.DataFrame([observation], columns=columns).astype(dtypes)
     probability = pipeline.predict_proba(obs)[0, 1]

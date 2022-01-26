@@ -37,7 +37,7 @@ class CategoricalTransformer(BaseEstimator, TransformerMixin):
             return 0
     
     def handle_missing_values(self, obj):
-        if pd.isna(obj) or str(obj) == "?" or str(obj) == "unknown/invalid" or str(obj) == "nan" :
+        if pd.isna(obj) or str(obj).lower() == "?" or str(obj).lower() == "unknown/invalid" or str(obj).lower() == "nan" or str(obj).lower() == "none" :
             return np.nan
         else :
             return obj
@@ -50,8 +50,17 @@ class CategoricalTransformer(BaseEstimator, TransformerMixin):
             elif _col in ['diuretics','insulin','change','diabetesMed','readmitted']:
                 _X[_col] = _X[_col].apply(self.pre_process_text)
                 _X[_col] = _X[_col].apply(self.text_to_binary)
-            elif _col in ['admission_source_code','discharge_disposition_code','admission_type_code','race','gender','age','weight','payer_code','medical_specialty','complete_vaccination_status','blood_type','max_glu_serum','A1Cresult','diag_1','diag_2','diag_3']:
+            elif _col in ['admission_source_code','discharge_disposition_code','admission_type_code','gender','age','weight','payer_code','medical_specialty','complete_vaccination_status','blood_type','max_glu_serum','A1Cresult','diag_1','diag_2','diag_3']:
                 _X[_col] = _X[_col].apply(self.pre_process_text)
+                _X[_col] = _X[_col].apply(self.handle_missing_values)
+            elif _col in ['race']:
+                transformation = {"caucasian" : "caucasian", "white" : "caucasian", "european" : "caucasian", "euro" : "caucasian",
+                  "africanamerican" : "afroamerican", "black" : "afroamerican", "afroamerican" : "afroamerican",
+                  "latino" : "hispanic", "hispanic" : "hispanic", 
+                  "asian":"asian", 
+                  "?" : "other", "other":"other"}                
+                _X[_col] = _X[_col].apply(self.pre_process_text)
+                _X[_col] = _X[_col].map(transformation)
                 _X[_col] = _X[_col].apply(self.handle_missing_values)
             
         return _X
@@ -62,29 +71,14 @@ class NumericalTransformer(BaseEstimator, TransformerMixin):
 
     def fit(self, X, y=None):
         return self
-    
-    def missing_to_zero(self, obj):
-        if pd.isna(obj):
-            return 0
-        else :
-            return obj
-    
-    def return_float(self, obj):
-        return float(obj)
-    
-    def return_int(self, obj):
-        return int(obj)
         
     def transform(self, X, y=None):
         _X = X.copy()
         for _col in _X:
-            if _col in ['num_lab_procedures','num_procedures','num_medications']:
-                _X[_col] = _X[_col].apply(self.missing_to_zero)
-                _X[_col] = _X[_col].apply(self.return_int)
-            elif _col in ['time_in_hospital','number_outpatient','number_emergency','number_inpatient','number_diagnoses']:
-                _X[_col] = _X[_col].apply(self.return_int)
+            if _col in ['num_lab_procedures','num_procedures','num_medications','time_in_hospital','number_outpatient','number_emergency','number_inpatient','number_diagnoses']:
+                _X[_col] = _X[_col].astype('Int64')
             elif _col in ['hemoglobin_level']:
-                _X[_col] = _X[_col].apply(self.return_float)
+                _X[_col] = _X[_col].astype('Float64')
         return _X
 
 class SaveTransformer(BaseEstimator, TransformerMixin):
