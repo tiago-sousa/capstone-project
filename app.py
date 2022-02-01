@@ -32,11 +32,11 @@ class BaseModel(Model):
         database = db
 
 class Prediction(BaseModel):
-    observation_id = IntegerField(unique=True)
+    admission_id = IntegerField(unique=True)
     observation = TextField()
-    prediction = BooleanField()
+    prediction = TextField()
     probability = FloatField()
-    true_class = BooleanField(null=True)
+    true_class = TextField()
     created_date = DateTimeField(default=datetime.datetime.now)
     modified_date = DateTimeField(null=True)
         
@@ -48,10 +48,9 @@ class Request(BaseModel):
     created_date = DateTimeField(default=datetime.datetime.now)
     
 class Data(BaseModel):
-    observation_id = IntegerField(unique=True)
     created_date = DateTimeField(default=datetime.datetime.now)
     modified_date = DateTimeField(null=True)
-    admission_id = TextField(null=True)
+    admission_id = IntegerField(unique=True)
     patient_id = TextField(null=True)
     race = TextField(null=True)
     gender = TextField(null=True)
@@ -110,21 +109,6 @@ pipeline = joblib.load('pipeline.pickle')
 ########################################
 # Unpickle the previously-trained model
 
-def check_request_observation(request):
-    """
-        Validates that our request is well formatted
-        
-        Returns:
-        - assertion value: True if request is ok, False otherwise
-        - error message: empty if request is ok, False otherwise
-    """
-    
-    if "observation" not in request:
-        error_description = "Field `observation` missing from request: {}".format(request)
-        return False, error_description
-    
-    return True, ""
-
 def check_request_id(request):
     """
         Validates that our request is well formatted
@@ -134,8 +118,8 @@ def check_request_id(request):
         - error message: empty if request is ok, False otherwise
     """
     
-    if "id" not in request:
-        error_description = "Field `id` missing from request: {}".format(request)
+    if "admission_id" not in request:
+        error_description = "Field `admission_id` missing from request: {}".format(request)
         return False, error_description
     
     return True, ""
@@ -149,8 +133,7 @@ def check_valid_column(observation):
         - error message: empty if all provided columns are valid, False otherwise
     """
     
-    valid_columns = {'admission_id', 
-                     'patient_id', 
+    valid_columns = {'patient_id', 
                      'race', 
                      'gender', 
                      'age', 
@@ -250,16 +233,10 @@ def predict():
         r.save()
         return response
 
-    _id = obs_dict['id']
+    _id = obs_dict['admission_id']
+   
     
-    request_ok, error_description = check_request_observation(obs_dict)
-    if not request_ok:
-        response = {'id': _id,'error': error_description}
-        r = Request(request=obs_dict, response=response, endpoint='predict', status='error')
-        r.save()
-        return response
-    
-    observation = obs_dict['observation']
+    observation = obs_dict
     
     columns_ok, error_description, error_type = check_valid_column(observation)
     if not columns_ok and error_type=='failure':
@@ -284,7 +261,7 @@ def predict():
     prediction = int(pipeline.predict(obs) [0])
     response = {'id':_id, 'probability': probability, 'prediction':prediction}
     
-    p = Prediction(observation_id=_id, probability=probability, prediction=prediction, observation=observation)
+    p = Prediction(admission_id=_id, probability=probability, prediction=prediction, observation=observation)
     
     try:
         p.save()
@@ -306,7 +283,7 @@ def update():
     
     obs_dict = request.get_json()
     try:
-        p = Prediction.get(Prediction.observation_id == obs_dict['id'])
+        p = Prediction.get(Prediction.observation_id == obs_dict['admission_id'])
         p.true_class = obs_dict['true_class']
         p.modified_date = datetime.datetime.now()
         p.save()
@@ -316,7 +293,7 @@ def update():
         return jsonify(response)
     
     except Prediction.DoesNotExist:
-        error_msg = 'Observation ID: "{}" does not exist'.format(obs_dict['id'])
+        error_msg = 'Observation ID: "{}" does not exist'.format(obs_dict['admission_id'])
         response = {'error': error_msg}
         r = Request(request=obs_dict, response=response, endpoint='update', status='error')
         r.save()
