@@ -36,7 +36,7 @@ class Prediction(BaseModel):
     observation = TextField()
     prediction = TextField()
     probability = FloatField()
-    true_class = TextField()
+    true_class = TextField(null=True)
     created_date = DateTimeField(default=datetime.datetime.now)
     modified_date = DateTimeField(null=True)
         
@@ -261,7 +261,7 @@ def predict():
     prediction = int(pipeline.predict(obs) [0])
     response = {'id':_id, 'probability': probability, 'prediction':prediction}
     
-    p = Prediction(admission_id=_id, probability=probability, prediction=prediction, observation=observation)
+    p = Prediction(admission_id=_id, probability=probability, prediction=str(prediction), observation=observation)
     
     try:
         p.save()
@@ -271,10 +271,11 @@ def predict():
         r.save()
     except IntegrityError:
         error_msg = "ERROR: Observation ID: '{}' already exists".format(_id)
-        response["error"] = error_msg
+        response = {'id':_id, 'error': error_msg}
         db.rollback()
         r = Request(request = obs_dict, response = response, endpoint = 'predict', status = 'error')
         r.save()
+        return response
         
     return response
 
