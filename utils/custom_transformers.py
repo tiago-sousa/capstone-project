@@ -134,7 +134,7 @@ class CategoricalTransformer(BaseEstimator, TransformerMixin):
         if 'diag_1' in _X.columns:
             values = _X['diag_1'].apply(self.pre_process_text)
             _X['diag_1_categories'] = values.apply(self.handle_missing_values)
-            _X['diag_1_categories'] = _X['diag_1_categories'].apply(self.create_diag_category) 
+            #_X['diag_1_categories'] = _X['diag_1_categories'].apply(self.create_diag_category) 
         
         for _col in _X:     
             if _col in ['has_prosthesis','blood_transfusion']:
