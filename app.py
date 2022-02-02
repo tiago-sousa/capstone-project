@@ -181,7 +181,7 @@ def check_column_types(observation):
                      'weight':["" , None],
                      'admission_type_code':[1.0,None], 
                      'discharge_disposition_code':[1.0,None],
-                     'admission_source_code':[1,None], 
+                     'admission_source_code':[1], 
                      'time_in_hospital':[1,None], 
                      'payer_code':["",None],
                      'medical_specialty':["",None],

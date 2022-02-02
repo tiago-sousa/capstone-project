@@ -168,7 +168,7 @@ class CategoricalTransformer(BaseEstimator, TransformerMixin):
                 
             elif _col in ['admission_source_code']:
                 invalid_categories = ['9','15','17','20','21']
-                _X[_col] = _X[_col].astype('Int64') 
+                #_X[_col] = _X[_col].astype('Int64') 
                 _X[_col] = _X[_col].apply(self.pre_process_text)
                 _X[_col] = _X[_col].apply(self.handle_invalid_categories, args =([invalid_categories]))
                 _X[_col] = _X[_col].apply(self.handle_missing_values)
