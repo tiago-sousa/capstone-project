@@ -353,32 +353,36 @@ def check_num_medications(observation):
 
 def check_number_outpatient(observation):
 
-    if observation['number_outpatient']<0:
-        error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'number_outpatient', observation['number_outpatient'])
-        return False, error
+    if observation['number_outpatient']:
+        if observation['number_outpatient']<0:
+            error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'number_outpatient', observation['number_outpatient'])
+            return False, error
     return True, ''
 
 
 def check_number_emergency(observation):
 
-    if observation['number_emergency']<0:
-        error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'number_emergency', observation['number_emergency'])
-        return False, error
+    if observation['number_emergency']:
+        if observation['number_emergency']<0:
+            error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'number_emergency', observation['number_emergency'])
+            return False, error
     return True, ''
 
 
 def check_number_inpatient(observation):
 
-    if observation['number_inpatient']<0:
-        error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'number_inpatient', observation['number_inpatient'])
-        return False, error
+    if observation['number_inpatient']:
+        if observation['number_inpatient']<0:
+            error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'number_inpatient', observation['number_inpatient'])
+            return False, error
     return True, ''
 
 def check_number_diagnoses(observation):
 
-    if observation['number_diagnoses']<0:
-        error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'number_diagnoses', observation['number_diagnoses'])
-        return False, error
+    if observation['number_diagnoses']:
+        if observation['number_diagnoses']<0:
+            error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'number_diagnoses', observation['number_diagnoses'])
+            return False, error
     return True, ''
 
 def check_blood_type(observation):
@@ -394,9 +398,10 @@ def check_blood_type(observation):
     return True, ''
     
 def check_hemoglobin_level(observation):
-    if observation['hemoglobin_level']<0 or observation['hemoglobin_level']>100:
-        error = "Invalid value provided for '{}': '{}'. Value outside expected range".format( 'hemoglobin_level', observation['hemoglobin_level'])
-        return False, error
+    if observation['hemoglobin_level']:
+        if observation['hemoglobin_level']<0 or observation['hemoglobin_level']>100:
+            error = "Invalid value provided for '{}': '{}'. Value outside expected range".format( 'hemoglobin_level', observation['hemoglobin_level'])
+            return False, error
     return True, ''
 
 def check_A1Cresult(observation):
