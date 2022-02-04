@@ -86,11 +86,21 @@ class CategoricalTransformer(BaseEstimator, TransformerMixin):
             return None
         else :
             return obj
+
+    def is_float(self, obj):
+        try:
+            float(obj)
+            return True
+        except ValueError:
+            return False
     
     def create_diag_category(self, obj):
-        if str(obj)[:1] in ("v","e"):
+        
+        if not obj:
+            return None
+        elif str(obj)[:1].lower() in ("v","e"):
             return str(obj)[:1]
-        elif obj:
+        elif self.is_float(obj):
             if float(obj) > 0 and float(obj) <= 139:
                 return str('000-139')
             elif float(obj) >139  and float(obj) <= 239:
@@ -126,15 +136,15 @@ class CategoricalTransformer(BaseEstimator, TransformerMixin):
             elif float(obj) > 799 and float(obj) <= 999:
                 return str('800-999')         
         else:
-            return obj
+            return None
         
     def transform(self, X, y=None):
         _X = X.copy()
         
-        if 'diag_1' in _X.columns:
-            values = _X['diag_1'].apply(self.pre_process_text)
-            _X['diag_1_categories'] = values.apply(self.handle_missing_values)
-            #_X['diag_1_categories'] = _X['diag_1_categories'].apply(self.create_diag_category) 
+        #if 'diag_1' in _X.columns:
+        #    values = _X['diag_1'].apply(self.pre_process_text)
+        #    _X['diag_1_categories'] = values.apply(self.handle_missing_values)
+        #    _X['diag_1_categories'] = _X['diag_1_categories'].apply(self.create_diag_category) 
         
         for _col in _X:     
             if _col in ['has_prosthesis','blood_transfusion']:
@@ -195,7 +205,7 @@ class CategoricalTransformer(BaseEstimator, TransformerMixin):
             elif _col in ['diag_1']:
                 _X[_col] = _X[_col].apply(self.pre_process_text)
                 _X[_col] = _X[_col].apply(self.handle_missing_values)
-                _X[_col] = _X[_col].apply(self.handle_categories, args = ([self.diag_1])) 
+                _X[_col] = _X[_col].apply(self.create_diag_category) 
         
             elif _col in ['diag_2']:
                 _X[_col] = _X[_col].apply(self.pre_process_text)
