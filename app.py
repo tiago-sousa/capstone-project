@@ -648,7 +648,7 @@ def check_blood_transfusion(observation):
 def check_column_types_update(observation):
 
     valid_column_types = {
-                     'admission_id':[1],
+                     'admission_id':[1,1.0],
                      'readmitted':[""], 
     }
     for key, valid_columns in valid_column_types.items():
@@ -952,6 +952,7 @@ def update():
         r.save()
         return response
 
+
     _id = observation['admission_id']    
 
     columns_ok, error_description, error_type = check_update_requests(observation)
@@ -971,6 +972,14 @@ def update():
         r = Request(request=observation, response=response, endpoint='update', status='error')
         r.save()
         return response
+    
+    admission_id_ok, error_description = check_admission_id(observation)
+    if not admission_id_ok:
+        response = {"admission_id": observation['admission_id'], 'error': error_description}
+        r = Request(request=observation, response=response, endpoint='update', status='error')
+        r.save()
+        return response
+  
     
     check_readmitted_ok, error_description = check_readmitted(observation)
     if not check_readmitted_ok:
