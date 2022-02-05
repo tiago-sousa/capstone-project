@@ -62,9 +62,9 @@ class CategoricalTransformer(BaseEstimator, TransformerMixin):
             return 0
     
     def text_to_binary(self, obj):
-        if obj == "yes" or obj == "ch"  :
+        if obj == "yes" or obj == "ch" or obj=="1"  :
             return 1
-        elif obj == "no":
+        elif obj == "no" or obj =="0":
             return 0
         
     def handle_categories(self, obj, list_categories):
@@ -76,7 +76,7 @@ class CategoricalTransformer(BaseEstimator, TransformerMixin):
             return "others"
     
     def handle_missing_values(self, obj):
-        if pd.isna(obj) or  str(obj).lower() in ("?","<na>","unknown/invalid","nan","none") :
+        if pd.isna(obj) or  str(obj).lower() in (None,"?","<na>","unknown/invalid","nan","none") :
             return None
         else :
             return obj
@@ -147,12 +147,17 @@ class CategoricalTransformer(BaseEstimator, TransformerMixin):
         #    _X['diag_1_categories'] = _X['diag_1_categories'].apply(self.create_diag_category) 
         
         for _col in _X:     
-            if _col in ['has_prosthesis','blood_transfusion']:
-                _X[_col] = _X[_col].apply(self.bool_to_binary)
+            if _col in []:
+                #_X[_col] = _X[_col].apply(self.bool_to_binary)
+                _X[_col] = _X[_col].apply(self.text_to_binary)
+                _X[_col] = _X[_col].apply(self.pre_process_text)
+                _X[_col] = _X[_col].apply(self.handle_missing_values)
                 
-            elif _col in ['diuretics','insulin','change','diabetesMed','readmitted']:
+            elif _col in ['diuretics','insulin','change','diabetesMed','readmitted','has_prosthesis','blood_transfusion']:
                 _X[_col] = _X[_col].apply(self.pre_process_text)
                 _X[_col] = _X[_col].apply(self.text_to_binary)
+                _X[_col] = _X[_col].apply(self.pre_process_text)
+                _X[_col] = _X[_col].apply(self.handle_missing_values)
                 
             elif _col in ['gender','age','weight','complete_vaccination_status','blood_type','max_glu_serum','A1Cresult']:
                 _X[_col] = _X[_col].apply(self.pre_process_text)
@@ -205,7 +210,8 @@ class CategoricalTransformer(BaseEstimator, TransformerMixin):
             elif _col in ['diag_1']:
                 _X[_col] = _X[_col].apply(self.pre_process_text)
                 _X[_col] = _X[_col].apply(self.handle_missing_values)
-                _X[_col] = _X[_col].apply(self.create_diag_category) 
+                _X[_col] = _X[_col].apply(self.handle_categories, args = ([self.diag_1])) 
+                #_X[_col] = _X[_col].apply(self.create_diag_category) 
         
             elif _col in ['diag_2']:
                 _X[_col] = _X[_col].apply(self.pre_process_text)

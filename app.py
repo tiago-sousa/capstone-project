@@ -173,33 +173,33 @@ def check_valid_column(observation):
 def check_column_types(observation):
 
     valid_column_types = {
-                     'admission_id':[1],
-                     'patient_id':[1], 
+                     'admission_id':[1, 1.0],
+                     'patient_id':[1, 1.0], 
                      'race':["" , None], 
                      'gender':["" , None], 
                      'age':["" , None], 
                      'weight':["" , None],
-                     'admission_type_code':[1.0,None], 
-                     'discharge_disposition_code':[1.0,None],
-                     'admission_source_code':[1], 
-                     'time_in_hospital':[1], 
+                     'admission_type_code':[1.0,1, None], 
+                     'discharge_disposition_code':[1.0, 1,None],
+                     'admission_source_code':[1.0, 1,None], 
+                     'time_in_hospital':[1,1.0, None], 
                      'payer_code':["",None],
                      'medical_specialty':["",None],
-                     'has_prosthesis':[True,None],
+                     'has_prosthesis':[True,1, 1.0, None],
                      'complete_vaccination_status':["",None],
-                     'num_lab_procedures':[1.0,None], 
-                     'num_procedures':[1],
-                     'num_medications':[1.0,None], 
-                     'number_outpatient':[1], 
-                     'number_emergency':[1], 
-                     'number_inpatient':[1], 
+                     'num_lab_procedures':[1.0,1,None], 
+                     'num_procedures':[1,1.0, None],
+                     'num_medications':[1,1.0, None],
+                     'number_outpatient':[1,1.0, None],
+                     'number_emergency':[1,1.0, None],
+                     'number_inpatient':[1,1.0, None],
                      'diag_1':["",None], 
                      'diag_2':["",None], 
                      'diag_3':["",None], 
-                     'number_diagnoses':[1], 
+                     'number_diagnoses':[1,1.0, None],
                      'blood_type':["",None], 
-                     'hemoglobin_level':[1.0,None], 
-                     'blood_transfusion':[True,None], 
+                     'hemoglobin_level':[1.0,1,None], 
+                     'blood_transfusion':[True,1,1.0, None], 
                      'max_glu_serum':["",None], 
                      'A1Cresult':["",None], 
                      'diuretics':["",None], 
@@ -217,6 +217,30 @@ def check_column_types(observation):
                     
     return True, ""
 
+
+def check_admission_id(observation):
+    value = observation['admission_id']
+    
+    if type(value).__name__ != type(1).__name__:
+        if value.is_integer():
+            observation['admission_id'] = int(observation['admission_id'])
+        else:
+            error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'admission_id', type(observation['admission_id']).__name__,(type(1).__name__))
+            return False, error      
+    
+    return True, ''
+
+def check_patient_id(observation):
+    value = observation['patient_id']
+    
+    if type(value).__name__ != type(1).__name__:
+        if value.is_integer():
+            observation['patient_id'] = int(observation['patient_id'])
+        else:
+            error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'patient_id', type(observation['patient_id']).__name__,(type(1).__name__))
+            return False, error      
+    
+    return True, ''
 
 def check_age(observation):
     
@@ -260,8 +284,14 @@ def check_gender(observation):
 def check_admission_type_code(observation):
 
     if observation['admission_type_code']:
-        if observation['admission_type_code'].is_integer():
-            observation['admission_type_code'] = int(observation['admission_type_code'])
+        if type(observation['admission_type_code']).__name__ == type(1).__name__:
+            observation['admission_type_code'] = float(observation['admission_type_code'])
+        elif type(observation['admission_type_code']).__name__ == type(1.0).__name__:
+            if observation['admission_type_code'].is_integer():
+                observation['admission_type_code'] = float(observation['admission_type_code'])
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'admission_type_code', type(observation['admission_type_code']).__name__,(type(1).__name__))
+                return False, error
         else:
             error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'admission_type_code', type(observation['admission_type_code']).__name__,(type(1).__name__))
             return False, error
@@ -269,19 +299,53 @@ def check_admission_type_code(observation):
     return True, ''
 
 def check_discharge_disposition_code(observation):
-
+    
     if observation['discharge_disposition_code']:
-        if observation['discharge_disposition_code'].is_integer():
-            observation['discharge_disposition_code'] = int(observation['discharge_disposition_code'])
+        if type(observation['discharge_disposition_code']).__name__ == type(1).__name__:
+            observation['discharge_disposition_code'] = float(observation['discharge_disposition_code'])
+        elif type(observation['discharge_disposition_code']).__name__ == type(1.0).__name__:
+            if observation['discharge_disposition_code'].is_integer():
+                observation['discharge_disposition_code'] = float(observation['discharge_disposition_code'])
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'discharge_disposition_code', type(observation['discharge_disposition_code']).__name__,(type(1).__name__))
+                return False, error
         else:
-            error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'admission_type_code', type(observation['discharge_disposition_code']).__name__,(type(1).__name__))
+            error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'discharge_disposition_code', type(observation['discharge_disposition_code']).__name__,(type(1).__name__))
             return False, error
     
     return True, ''
 
-def check_time_in_hospital(observation):
 
+def check_admission_source_code(observation):
+    
+    if observation['admission_source_code']:
+        if type(observation['admission_source_code']).__name__ == type(1).__name__:
+            observation['admission_source_code'] = float(observation['admission_source_code'])
+        elif type(observation['admission_source_code']).__name__ == type(1.0).__name__:
+            if observation['admission_source_code'].is_integer():
+                observation['admission_source_code'] = float(observation['admission_source_code'])
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'admission_source_code', type(observation['admission_source_code']).__name__,(type(1).__name__))
+                return False, error
+        else:
+            error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'admission_source_code', type(observation['admission_source_code']).__name__,(type(1).__name__))
+            return False, error
+    return True, ''
+
+def check_time_in_hospital(observation):
+    
     if observation['time_in_hospital']:
+        if type(observation['time_in_hospital']).__name__ == type(1).__name__:
+            observation['time_in_hospital'] = float(observation['time_in_hospital'])
+        elif type(observation['time_in_hospital']).__name__ == type(1.0).__name__:
+            if observation['time_in_hospital'].is_integer():
+                observation['time_in_hospital'] = float(observation['time_in_hospital'])
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'time_in_hospital', type(observation['time_in_hospital']).__name__,(type(1).__name__))
+                return False, error
+        else:
+            error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'time_in_hospital', type(observation['time_in_hospital']).__name__,(type(1).__name__))
+            return False, error
         if observation['time_in_hospital']<0:
             error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'time_in_hospital', observation['time_in_hospital'])
             return False, error
@@ -303,11 +367,15 @@ def check_complete_vaccination_status(observation):
 def check_num_lab_procedures(observation):
 
     if observation['num_lab_procedures']:
-        if observation['num_lab_procedures'].is_integer():
+        if type(observation['num_lab_procedures']).__name__ == type(1).__name__:
             observation['num_lab_procedures'] = int(observation['num_lab_procedures'])
-        else:
-            error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'num_lab_procedures', type(observation['num_lab_procedures']).__name__,(type(1).__name__))
-            return False, error
+        
+        elif type(observation['num_lab_procedures']).__name__ == type(1.0).__name__:
+            if observation['num_lab_procedures'].is_integer():
+                observation['num_lab_procedures'] = int(observation['num_lab_procedures'])
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'num_lab_procedures', type(observation['num_lab_procedures']).__name__,(type(1).__name__))
+                return False, error
     
         if observation['num_lab_procedures']<0:
             error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'num_lab_procedures', observation['num_lab_procedures'])
@@ -316,72 +384,110 @@ def check_num_lab_procedures(observation):
 
 def check_num_procedures(observation):
 
-    if observation['num_procedures']<0:
-        error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'num_procedures', observation['num_procedures'])
-        return False, error
+    if observation['num_procedures']:
+        if type(observation['num_procedures']).__name__ == type(1).__name__:
+            observation['num_procedures'] = int(observation['num_procedures'])
+        
+        elif type(observation['num_procedures']).__name__ == type(1.0).__name__:
+            if observation['num_procedures'].is_integer():
+                observation['num_procedures'] = int(observation['num_procedures'])
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'num_procedures', type(observation['num_procedures']).__name__,(type(1).__name__))
+                return False, error
+    
+        if observation['num_procedures']<0:
+            error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'num_procedures', observation['num_procedures'])
+            return False, error
     return True, ''
 
 def check_num_medications(observation):
 
     if observation['num_medications']:
-        if observation['num_medications'].is_integer():
+        if type(observation['num_medications']).__name__ == type(1).__name__:
             observation['num_medications'] = int(observation['num_medications'])
-        else:
-            error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'num_medications', type(observation['num_medications']).__name__,(type(1).__name__))
-            return False, error
+        
+        elif type(observation['num_medications']).__name__ == type(1.0).__name__:
+            if observation['num_medications'].is_integer():
+                observation['num_medications'] = int(observation['num_medications'])
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'num_medications', type(observation['num_medications']).__name__,(type(1).__name__))
+                return False, error
     
         if observation['num_medications']<0:
             error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'num_medications', observation['num_medications'])
             return False, error
     return True, ''
-
-
-def check_num_medications(observation):
-
-    if observation['num_medications']:
-        if observation['num_medications'].is_integer():
-            observation['num_medications'] = int(observation['num_medications'])
-        else:
-            error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'num_medications', type(observation['num_medications']).__name__,(type(1).__name__))
-            return False, error
-    
-        if observation['num_medications']<0:
-            error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'num_medications', observation['num_medications'])
-            return False, error
-    return True, ''
-
 
 def check_number_outpatient(observation):
 
     if observation['number_outpatient']:
+        if type(observation['number_outpatient']).__name__ == type(1).__name__:
+            observation['number_outpatient'] = int(observation['number_outpatient'])
+        
+        elif type(observation['number_outpatient']).__name__ == type(1.0).__name__:
+            if observation['number_outpatient'].is_integer():
+                observation['number_outpatient'] = int(observation['number_outpatient'])
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'number_outpatient', type(observation['number_outpatient']).__name__,(type(1).__name__))
+                return False, error
+    
         if observation['number_outpatient']<0:
             error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'number_outpatient', observation['number_outpatient'])
             return False, error
     return True, ''
 
-
 def check_number_emergency(observation):
 
     if observation['number_emergency']:
+        if type(observation['number_emergency']).__name__ == type(1).__name__:
+            observation['number_emergency'] = int(observation['number_emergency'])
+        
+        elif type(observation['number_emergency']).__name__ == type(1.0).__name__:
+            if observation['number_emergency'].is_integer():
+                observation['number_emergency'] = int(observation['number_emergency'])
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'number_emergency', type(observation['number_emergency']).__name__,(type(1).__name__))
+                return False, error
+    
         if observation['number_emergency']<0:
             error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'number_emergency', observation['number_emergency'])
             return False, error
     return True, ''
 
-
 def check_number_inpatient(observation):
 
     if observation['number_inpatient']:
+        if type(observation['number_inpatient']).__name__ == type(1).__name__:
+            observation['number_inpatient'] = int(observation['number_inpatient'])
+        
+        elif type(observation['number_inpatient']).__name__ == type(1.0).__name__:
+            if observation['number_inpatient'].is_integer():
+                observation['number_inpatient'] = int(observation['number_inpatient'])
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'number_inpatient', type(observation['number_inpatient']).__name__,(type(1).__name__))
+                return False, error
+    
         if observation['number_inpatient']<0:
             error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'number_inpatient', observation['number_inpatient'])
             return False, error
     return True, ''
 
+
 def check_number_diagnoses(observation):
 
     if observation['number_diagnoses']:
+        if type(observation['number_diagnoses']).__name__ == type(1).__name__:
+            observation['number_diagnoses'] = int(observation['number_diagnoses'])
+        
+        elif type(observation['number_diagnoses']).__name__ == type(1.0).__name__:
+            if observation['number_diagnoses'].is_integer():
+                observation['number_diagnoses'] = int(observation['number_diagnoses'])
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'number_diagnoses', type(observation['number_diagnoses']).__name__,(type(1).__name__))
+                return False, error
+    
         if observation['number_diagnoses']<0:
-            error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'number_diagnoses', observation['number_diagnoses'])
+            error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'number_inpatient', observation['number_diagnoses'])
             return False, error
     return True, ''
 
@@ -497,6 +603,48 @@ def check_update_requests(observation):
 
     return True, "",""
 
+def check_has_prosthesis(observation):
+    
+    if observation['has_prosthesis']:
+        if type(observation['has_prosthesis']).__name__ == type(1).__name__:
+            observation['has_prosthesis'] = int(observation['has_prosthesis'])
+        elif type(observation['has_prosthesis']).__name__ == type(1.0).__name__:
+            if observation['has_prosthesis'].is_integer():
+                observation['has_prosthesis'] = int(observation['has_prosthesis'])
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'admission_source_code', type(observation['admission_source_code']).__name__,(type(1).__name__))
+                return False, error
+        if observation['has_prosthesis'] in (True,1):
+            observation['has_prosthesis'] = "1"
+        elif observation['has_prosthesis'] in (False,0):
+            observation['has_prosthesis'] = "0"
+        else:    
+            error = "Invalid value provided for '{}': '{}'".format( 'has_prosthesis' , observation['has_prosthesis'])
+            return False, error      
+    return True, ''
+
+
+def check_blood_transfusion(observation):
+    
+    if observation['blood_transfusion']:
+        if type(observation['blood_transfusion']).__name__ == type(1).__name__:
+            observation['blood_transfusion'] = int(observation['blood_transfusion'])
+        elif type(observation['blood_transfusion']).__name__ == type(1.0).__name__:
+            if observation['blood_transfusion'].is_integer():
+                observation['blood_transfusion'] = int(observation['blood_transfusion'])
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'blood_transfusion', type(observation['blood_transfusion']).__name__,(type(1).__name__))
+                return False, error
+        if observation['blood_transfusion'] in (True,1):
+            observation['blood_transfusion'] = "1"
+        elif observation['blood_transfusion'] in (False,0):
+            observation['blood_transfusion'] = "0"
+        else:    
+            error = "Invalid value provided for '{}': '{}'".format( 'blood_transfusion' , observation['blood_transfusion'])
+            return False, error      
+    return True, ''
+
+
 def check_column_types_update(observation):
 
     valid_column_types = {
@@ -557,8 +705,6 @@ def predict():
         r.save()
         return response
 
-    _id = observation['admission_id']
-    
     columns_ok, error_description, error_type = check_valid_column(observation)
     if not columns_ok and error_type=='failure':
         response = {'admission_id': observation['admission_id'],'error': error_description}
@@ -569,17 +715,31 @@ def predict():
     if not columns_ok and error_type=='warning':
         warning_description = error_description
         warning = True
-     
-    _id = observation['admission_id']
     
     column_types_ok, error_description = check_column_types(observation)
     if not column_types_ok:
+        response = {"admission_id": observation['admission_id'], 'error': error_description}
+        r = Request(request=observation, response=response, endpoint='predict', status='error')
+        r.save()
+        return response
+    
+    admission_id_ok, error_description = check_admission_id(observation)
+    if not admission_id_ok:
+        response = {"admission_id": observation['admission_id'], 'error': error_description}
+        r = Request(request=observation, response=response, endpoint='predict', status='error')
+        r.save()
+        return response
+    
+    _id = observation['admission_id']
+    
+    patient_id_ok, error_description = check_patient_id(observation)
+    if not patient_id_ok:
         response = {"admission_id": _id, 'error': error_description}
         r = Request(request=observation, response=response, endpoint='predict', status='error')
         r.save()
         return response
-
-    age_ok, error_description = check_age(observation)
+    
+    """age_ok, error_description = check_age(observation)
     if not age_ok:
         response = {"admission_id": _id, 'error': error_description}
         r = Request(request=observation, response=response, endpoint='predict', status='error')
@@ -599,9 +759,16 @@ def predict():
         r = Request(request=observation, response=response, endpoint='predict', status='error')
         r.save()
         return response
-    
+    """
     admission_type_code_ok, error_description = check_admission_type_code(observation)
     if not admission_type_code_ok:
+        response = {"admission_id": _id, 'error': error_description}
+        r = Request(request=observation, response=response, endpoint='predict', status='error')
+        r.save()
+        return response
+
+    admission_source_code_ok, error_description = check_admission_source_code(observation)
+    if not admission_source_code_ok:
         response = {"admission_id": _id, 'error': error_description}
         r = Request(request=observation, response=response, endpoint='predict', status='error')
         r.save()
@@ -733,6 +900,20 @@ def predict():
         r.save()
         return response    
     
+    check_has_prosthesis_ok, error_description = check_has_prosthesis(observation)
+    if not check_has_prosthesis_ok:
+        response = {"admission_id": _id, 'error': error_description}
+        r = Request(request=observation, response=response, endpoint='predict', status='error')
+        r.save()
+        return response  
+
+    check_blood_transfusion_ok, error_description = check_blood_transfusion(observation)
+    if not check_blood_transfusion_ok:
+        response = {"admission_id": _id, 'error': error_description}
+        r = Request(request=observation, response=response, endpoint='predict', status='error')
+        r.save()
+        return response  
+
     obs = pd.DataFrame([observation], columns=columns).astype(dtypes)
     probability = pipeline.predict_proba(obs)[0, 1]
     prediction = get_model_prediction(pipeline.predict(obs)[0])
