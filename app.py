@@ -11,7 +11,7 @@ from flask import Flask, jsonify, request
 from peewee import  *
 from playhouse.shortcuts import model_to_dict
 from playhouse.db_url import connect
-import logging
+from loguru import logger
 
 ## End imports
 ########################################
@@ -921,9 +921,9 @@ def predict():
     p = Prediction(admission_id=_id, probability=probability, prediction=prediction, observation=observation)
     try:
         p.save()
-        r = Request(request=observation, response=response, endpoint='predict', status='success')
-        d = Data( admission_id = observation['admission_id'], patient_id = observation['patient_id'], race = observation['race'], gender = observation['gender'], age = observation['age'],weight = observation['weight'], admission_type_code = observation['admission_type_code'], discharge_disposition_code = observation['discharge_disposition_code'], admission_source_code = observation['admission_source_code'], time_in_hospital = observation['time_in_hospital'], payer_code = observation['payer_code'], medical_specialty = observation['medical_specialty'], has_prosthesis = observation['has_prosthesis'], complete_vaccination_status = observation['complete_vaccination_status'], num_lab_procedures = observation['num_lab_procedures'], num_procedures = observation['num_procedures'], num_medications = observation['num_medications'], number_outpatient = observation['number_outpatient'], number_emergency = observation['number_emergency'], number_inpatient = observation['number_inpatient'], diag_1 = observation['diag_1'], diag_2 = observation['diag_2'], diag_3 = observation['diag_3'], number_diagnoses = observation['number_diagnoses'], blood_type = observation['blood_type'], hemoglobin_level = observation['hemoglobin_level'], blood_transfusion = observation['blood_transfusion'], max_glu_serum = observation['max_glu_serum'], A1Cresult = observation['A1Cresult'], diuretics = observation['diuretics'], insulin = observation['insulin'], change = observation['change'], diabetesMed = observation['diabetesMed'])
-        d.save()
+        #r = Request(request=observation, response=response, endpoint='predict', status='success')
+        #d = Data( admission_id = observation['admission_id'], patient_id = observation['patient_id'], race = observation['race'], gender = observation['gender'], age = observation['age'],weight = observation['weight'], admission_type_code = observation['admission_type_code'], discharge_disposition_code = observation['discharge_disposition_code'], admission_source_code = observation['admission_source_code'], time_in_hospital = observation['time_in_hospital'], payer_code = observation['payer_code'], medical_specialty = observation['medical_specialty'], has_prosthesis = observation['has_prosthesis'], complete_vaccination_status = observation['complete_vaccination_status'], num_lab_procedures = observation['num_lab_procedures'], num_procedures = observation['num_procedures'], num_medications = observation['num_medications'], number_outpatient = observation['number_outpatient'], number_emergency = observation['number_emergency'], number_inpatient = observation['number_inpatient'], diag_1 = observation['diag_1'], diag_2 = observation['diag_2'], diag_3 = observation['diag_3'], number_diagnoses = observation['number_diagnoses'], blood_type = observation['blood_type'], hemoglobin_level = observation['hemoglobin_level'], blood_transfusion = observation['blood_transfusion'], max_glu_serum = observation['max_glu_serum'], A1Cresult = observation['A1Cresult'], diuretics = observation['diuretics'], insulin = observation['insulin'], change = observation['change'], diabetesMed = observation['diabetesMed'])
+        #d.save()
         if warning:
             response['warning'] = warning_description
         r.save()
@@ -948,8 +948,9 @@ def update():
     request_ok, error_description = check_request_id(observation)
     if not request_ok:
         response = {'id': None,'error': error_description}
-        r = Request(request=observation, response=response, endpoint='update', status='error')
-        r.save()
+        logger.error(response)
+        #r = Request(request=observation, response=response, endpoint='update', status='error')
+        #r.save()
         return response
 
 
@@ -958,8 +959,9 @@ def update():
     columns_ok, error_description, error_type = check_update_requests(observation)
     if not columns_ok  and error_type=='failure':
         response = {'id': None,'error': error_description}
-        r = Request(request=observation, response=response, endpoint='update', status='error')
-        r.save()
+        logger.error(response)
+        #r = Request(request=observation, response=response, endpoint='update', status='error')
+        #r.save()
         return response
     
     if not columns_ok and error_type=='warning':
@@ -969,23 +971,26 @@ def update():
     check_column_types_update_ok, error_description = check_column_types_update(observation)
     if not check_column_types_update_ok:
         response = {"admission_id": _id, 'error': error_description}
-        r = Request(request=observation, response=response, endpoint='update', status='error')
-        r.save()
+        logger.error(response)
+        #r = Request(request=observation, response=response, endpoint='update', status='error')
+        #r.save()
         return response
     
     admission_id_ok, error_description = check_admission_id(observation)
     if not admission_id_ok:
         response = {"admission_id": observation['admission_id'], 'error': error_description}
-        r = Request(request=observation, response=response, endpoint='update', status='error')
-        r.save()
+        logger.error(response)
+        #r = Request(request=observation, response=response, endpoint='update', status='error')
+        #r.save()
         return response
   
     
     check_readmitted_ok, error_description = check_readmitted(observation)
     if not check_readmitted_ok:
         response = {"admission_id": _id, 'error': error_description}
-        r = Request(request=observation, response=response, endpoint='update', status='error')
-        r.save()
+        logger.error(response)
+        #r = Request(request=observation, response=response, endpoint='update', status='error')
+        #r.save()
         return response    
   
     try:
@@ -996,19 +1001,22 @@ def update():
         response = {'admission_id':_id, 'actual_readmitted':observation['readmitted'] , "predicted_readmitted":p.prediction }
         if warning:
             response['warning'] = warning_description
-        r = Request(request=observation, response=response, endpoint='update', status='success')
-        r.save()
-        d = Data.get(Data.admission_id == _id)
-        d.modified_date = datetime.datetime.now()
-        d.readmitted = observation['readmitted']
-        d.save()
+        #r = Request(request=observation, response=response, endpoint='update', status='success')
+        #r.save()
+        #d = Data.get(Data.admission_id == _id)
+        #d.modified_date = datetime.datetime.now()
+        #d.readmitted = observation['readmitted']
+        #d.save()
         return jsonify(response)
     
     except Prediction.DoesNotExist:
         error_msg = 'Observation ID: "{}" does not exist'.format(observation['admission_id'])
         response = {'error': error_msg}
-        r = Request(request=observation, response=response, endpoint='update', status='error')
-        r.save()
+        #r = Request(request=observation, response=response, endpoint='update', status='error')
+        #r.save()
+        logger.error(response)
+        #r = Request(request=observation, response=response, endpoint='update', status='error')
+        #r.save()
         return jsonify(response)
 
 

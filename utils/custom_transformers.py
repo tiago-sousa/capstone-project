@@ -210,8 +210,9 @@ class CategoricalTransformer(BaseEstimator, TransformerMixin):
             elif _col in ['diag_1']:
                 _X[_col] = _X[_col].apply(self.pre_process_text)
                 _X[_col] = _X[_col].apply(self.handle_missing_values)
-                _X[_col] = _X[_col].apply(self.handle_categories, args = ([self.diag_1])) 
-                #_X[_col] = _X[_col].apply(self.create_diag_category) 
+                _X[_col] = _X[_col].apply(self.create_diag_category) 
+                #_X[_col] = _X[_col].apply(self.handle_categories, args = ([self.diag_1])) 
+                
         
             elif _col in ['diag_2']:
                 _X[_col] = _X[_col].apply(self.pre_process_text)
