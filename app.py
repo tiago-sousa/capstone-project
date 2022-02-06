@@ -674,7 +674,7 @@ def check_readmitted(observation):
 def get_model_prediction(pred_value):
     readmitted = ""
         
-    if pred_value >=0.10:
+    if pred_value >=0.142:
         readmitted = "Yes"
     elif pred_value < 0.10 :
         readmitted = "No"
