@@ -13,3 +13,5 @@ flask==2.0.2
 peewee==3.14.8
 psycopg2-binary==2.8.6
 loguru==0.6.0
+scikit-lego==0.6.9
+yellowbrick

@@ -674,9 +674,9 @@ def check_readmitted(observation):
 def get_model_prediction(pred_value):
     readmitted = ""
         
-    if pred_value == 1:
+    if pred_value >=0.10:
         readmitted = "Yes"
-    elif pred_value == 0 :
+    elif pred_value < 0.10 :
         readmitted = "No"
         
     return readmitted
@@ -916,7 +916,7 @@ def predict():
 
     obs = pd.DataFrame([observation], columns=columns).astype(dtypes)
     probability = pipeline.predict_proba(obs)[0, 1]
-    prediction = get_model_prediction(pipeline.predict(obs)[0])
+    prediction = get_model_prediction(pipeline.predict_proba(obs)[0, 1])
     response = {'readmitted':prediction}
     p = Prediction(admission_id=_id, probability=probability, prediction=prediction, observation=observation)
     try:
