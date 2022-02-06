@@ -926,7 +926,7 @@ def predict():
         #d.save()
         if warning:
             response['warning'] = warning_description
-        r.save()
+        #r.save()
     except IntegrityError:
         error_msg = "ERROR: Admission ID: '{}' already exists".format(_id)
         response = {'id':_id, 'error': error_msg}
