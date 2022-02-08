@@ -184,10 +184,10 @@ def check_column_types(observation):
                      'discharge_disposition_code':[1.0, 1,None],
                      'admission_source_code':[1.0, 1,None], 
                      'time_in_hospital':[1,1.0, None], 
-                     'payer_code':["",None],
-                     'medical_specialty':["",None],
+                     'payer_code':["",1.0, None],
+                     'medical_specialty':["",1.0,None],
                      'has_prosthesis':[True,1, 1.0, None],
-                     'complete_vaccination_status':["",None],
+                     'complete_vaccination_status':["",1.0, None],
                      'num_lab_procedures':[1.0,1,None], 
                      'num_procedures':[1,1.0, None],
                      'num_medications':[1,1.0, None],
@@ -292,6 +292,32 @@ def check_gender(observation):
                 observation['gender'] = None
             else:
                 error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'gender', type(observation['gender']).__name__,(type(None).__name__))
+                return False, error
+    
+    return True, ''
+
+
+def check_payer_code(observation):
+    if observation['payer_code']:
+        if type(observation['payer_code']).__name__ == type("").__name__:
+            observation['payer_code'] = observation['payer_code'].strip()
+        elif type(observation['payer_code']).__name__ == type(1.0).__name__:
+            if pd.isna(observation['payer_code']):
+                observation['payer_code'] = None
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'payer_code', type(observation['payer_code']).__name__,(type(None).__name__))
+                return False, error
+    return True, ''
+
+def check_medical_specialty(observation):
+    if observation['medical_specialty']:
+        if type(observation['medical_specialty']).__name__ == type("").__name__:
+            observation['medical_specialty'] = observation['medical_specialty'].strip()
+        elif type(observation['medical_specialty']).__name__ == type(1.0).__name__:
+            if pd.isna(observation['medical_specialty']):
+                observation['medical_specialty'] = None
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'medical_specialty', type(observation['medical_specialty']).__name__,(type(None).__name__))
                 return False, error
     
     return True, ''
@@ -436,14 +462,20 @@ def check_time_in_hospital(observation):
     return True, ''
 
 def check_complete_vaccination_status(observation):
-    valid_values = [None,"none","complete","incomplete"]
+    #valid_values = [None,"none","complete","incomplete"]
     
     if observation['complete_vaccination_status']:
-        if observation['complete_vaccination_status'].strip().lower() not in valid_values:
-            error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'complete_vaccination_status' , observation['complete_vaccination_status'], ",".join(["'{}'".format(v) for v in valid_values]))
-            return False, error      
-    
-        observation['complete_vaccination_status'] = observation['complete_vaccination_status'].strip().lower()
+        if type(observation['complete_vaccination_status']).__name__ == type("").__name__:
+            observation['complete_vaccination_status'] = observation['complete_vaccination_status'].strip()
+        #if observation['complete_vaccination_status'].strip().lower() not in valid_values:
+        #    error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'complete_vaccination_status' , observation['complete_vaccination_status'], ",".join(["'{}'".format(v) for v in valid_values]))
+        #    return False, error      
+        elif type(observation['complete_vaccination_status']).__name__ == type(1.0).__name__:
+            if pd.isna(observation['complete_vaccination_status']):
+                observation['complete_vaccination_status'] = None
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'complete_vaccination_status', type(observation['complete_vaccination_status']).__name__,(type(None).__name__))
+                return False, error
     
     return True, ''
 
@@ -475,10 +507,12 @@ def check_num_procedures(observation):
         elif type(observation['num_procedures']).__name__ == type(1.0).__name__:
             if observation['num_procedures'].is_integer():
                 observation['num_procedures'] = int(observation['num_procedures'])
+            elif pd.isna(observation['num_procedures']):
+                observation['num_procedures'] = None     
             else:
                 error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'num_procedures', type(observation['num_procedures']).__name__,(type(1).__name__))
                 return False, error
-    
+    if observation['num_procedures']:    
         if observation['num_procedures']<0:
             error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'num_procedures', observation['num_procedures'])
             return False, error
@@ -875,6 +909,27 @@ def predict():
     
     gender_ok, error_description = check_gender(observation)
     if not gender_ok:
+        response = {"admission_id": _id, 'error': error_description}
+        r = Request(request=observation, response=response, endpoint='predict', status='error')
+        r.save()
+        return response
+    
+    payer_code_ok, error_description = check_payer_code(observation)
+    if not payer_code_ok:
+        response = {"admission_id": _id, 'error': error_description}
+        r = Request(request=observation, response=response, endpoint='predict', status='error')
+        r.save()
+        return response    
+
+    complete_vaccination_status_ok, error_description = check_complete_vaccination_status(observation)
+    if not complete_vaccination_status_ok:
+        response = {"admission_id": _id, 'error': error_description}
+        r = Request(request=observation, response=response, endpoint='predict', status='error')
+        r.save()
+        return response      
+    
+    medical_specialty_ok, error_description = check_medical_specialty(observation)
+    if not medical_specialty_ok:
         response = {"admission_id": _id, 'error': error_description}
         r = Request(request=observation, response=response, endpoint='predict', status='error')
         r.save()
