@@ -7,6 +7,7 @@ import pickle
 import joblib
 import pandas as pd
 import datetime
+import math
 from flask import Flask, jsonify, request
 from peewee import  *
 from playhouse.shortcuts import model_to_dict
@@ -289,6 +290,8 @@ def check_admission_type_code(observation):
         elif type(observation['admission_type_code']).__name__ == type(1.0).__name__:
             if observation['admission_type_code'].is_integer():
                 observation['admission_type_code'] = float(observation['admission_type_code'])
+            elif pd.isna(observation['admission_type_code']):
+                observation['admission_type_code'] = None
             else:
                 error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'admission_type_code', type(observation['admission_type_code']).__name__,(type(1).__name__))
                 return False, error
@@ -306,6 +309,8 @@ def check_discharge_disposition_code(observation):
         elif type(observation['discharge_disposition_code']).__name__ == type(1.0).__name__:
             if observation['discharge_disposition_code'].is_integer():
                 observation['discharge_disposition_code'] = float(observation['discharge_disposition_code'])
+            elif pd.isna(observation['discharge_disposition_code']):
+                observation['discharge_disposition_code'] = None
             else:
                 error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'discharge_disposition_code', type(observation['discharge_disposition_code']).__name__,(type(1).__name__))
                 return False, error
@@ -324,6 +329,8 @@ def check_admission_source_code(observation):
         elif type(observation['admission_source_code']).__name__ == type(1.0).__name__:
             if observation['admission_source_code'].is_integer():
                 observation['admission_source_code'] = float(observation['admission_source_code'])
+            elif pd.isna(observation['admission_source_code']):
+                observation['admission_source_code'] = None
             else:
                 error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'admission_source_code', type(observation['admission_source_code']).__name__,(type(1).__name__))
                 return False, error
@@ -340,6 +347,8 @@ def check_time_in_hospital(observation):
         elif type(observation['time_in_hospital']).__name__ == type(1.0).__name__:
             if observation['time_in_hospital'].is_integer():
                 observation['time_in_hospital'] = float(observation['time_in_hospital'])
+            elif pd.isna(observation['time_in_hospital']):
+                observation['time_in_hospital'] = None
             else:
                 error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'time_in_hospital', type(observation['time_in_hospital']).__name__,(type(1).__name__))
                 return False, error
@@ -369,14 +378,15 @@ def check_num_lab_procedures(observation):
     if observation['num_lab_procedures']:
         if type(observation['num_lab_procedures']).__name__ == type(1).__name__:
             observation['num_lab_procedures'] = int(observation['num_lab_procedures'])
-        
         elif type(observation['num_lab_procedures']).__name__ == type(1.0).__name__:
             if observation['num_lab_procedures'].is_integer():
                 observation['num_lab_procedures'] = int(observation['num_lab_procedures'])
+            elif pd.isna(observation['num_lab_procedures']):
+                observation['num_lab_procedures'] = None
             else:
                 error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'num_lab_procedures', type(observation['num_lab_procedures']).__name__,(type(1).__name__))
                 return False, error
-    
+    if observation['num_lab_procedures']:
         if observation['num_lab_procedures']<0:
             error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'num_lab_procedures', observation['num_lab_procedures'])
             return False, error
@@ -409,10 +419,12 @@ def check_num_medications(observation):
         elif type(observation['num_medications']).__name__ == type(1.0).__name__:
             if observation['num_medications'].is_integer():
                 observation['num_medications'] = int(observation['num_medications'])
+            elif pd.isna(observation['num_medications']):
+                observation['num_medications'] = None
             else:
                 error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'num_medications', type(observation['num_medications']).__name__,(type(1).__name__))
                 return False, error
-    
+    if observation['num_medications']:   
         if observation['num_medications']<0:
             error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'num_medications', observation['num_medications'])
             return False, error
