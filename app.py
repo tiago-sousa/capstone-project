@@ -198,15 +198,15 @@ def check_column_types(observation):
                      'diag_2':["",1.0, None], 
                      'diag_3':["",1.0, None], 
                      'number_diagnoses':[1,1.0, None],
-                     'blood_type':["",None], 
+                     'blood_type':["",1.0,None], 
                      'hemoglobin_level':[1.0,1,None], 
                      'blood_transfusion':[True,1,1.0, None], 
-                     'max_glu_serum':["",None], 
-                     'A1Cresult':["",None], 
-                     'diuretics':["",None], 
-                     'insulin':["",None], 
-                     'change':["",None], 
-                     'diabetesMed':["",None], 
+                     'max_glu_serum':["",1.0,None], 
+                     'A1Cresult':["",1.0,None], 
+                     'diuretics':["",1.0,None], 
+                     'insulin':["",1.0,None], 
+                     'change':["",1.0,None], 
+                     'diabetesMed':["",1.0,None], 
     }
     for key, valid_columns in valid_column_types.items():
         if key in observation:
@@ -547,10 +547,13 @@ def check_number_outpatient(observation):
         elif type(observation['number_outpatient']).__name__ == type(1.0).__name__:
             if observation['number_outpatient'].is_integer():
                 observation['number_outpatient'] = int(observation['number_outpatient'])
+            elif pd.isna(observation['number_outpatient']):
+                observation['number_outpatient'] = None
             else:
                 error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'number_outpatient', type(observation['number_outpatient']).__name__,(type(1).__name__))
                 return False, error
-    
+            
+    if observation['number_outpatient']:    
         if observation['number_outpatient']<0:
             error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'number_outpatient', observation['number_outpatient'])
             return False, error
@@ -565,10 +568,12 @@ def check_number_emergency(observation):
         elif type(observation['number_emergency']).__name__ == type(1.0).__name__:
             if observation['number_emergency'].is_integer():
                 observation['number_emergency'] = int(observation['number_emergency'])
+            elif pd.isna(observation['number_emergency']):
+                observation['number_emergency'] = None
             else:
                 error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'number_emergency', type(observation['number_emergency']).__name__,(type(1).__name__))
                 return False, error
-    
+    if observation['number_emergency']:    
         if observation['number_emergency']<0:
             error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'number_emergency', observation['number_emergency'])
             return False, error
@@ -583,10 +588,12 @@ def check_number_inpatient(observation):
         elif type(observation['number_inpatient']).__name__ == type(1.0).__name__:
             if observation['number_inpatient'].is_integer():
                 observation['number_inpatient'] = int(observation['number_inpatient'])
+            elif pd.isna(observation['number_inpatient']):
+                observation['number_inpatient'] = None
             else:
                 error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'number_inpatient', type(observation['number_inpatient']).__name__,(type(1).__name__))
                 return False, error
-    
+    if observation['number_inpatient']:    
         if observation['number_inpatient']<0:
             error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'number_inpatient', observation['number_inpatient'])
             return False, error
@@ -602,10 +609,12 @@ def check_number_diagnoses(observation):
         elif type(observation['number_diagnoses']).__name__ == type(1.0).__name__:
             if observation['number_diagnoses'].is_integer():
                 observation['number_diagnoses'] = int(observation['number_diagnoses'])
+            elif pd.isna(observation['number_diagnoses']):
+                observation['number_diagnoses'] = None               
             else:
                 error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'number_diagnoses', type(observation['number_diagnoses']).__name__,(type(1).__name__))
                 return False, error
-    
+    if observation['number_diagnoses']:    
         if observation['number_diagnoses']<0:
             error = "Invalid value provided for '{}': '{}'. Value cannot be negative".format( 'number_inpatient', observation['number_diagnoses'])
             return False, error
@@ -615,11 +624,18 @@ def check_blood_type(observation):
     valid_values = [None,"","?","o+","a+","b+","o-","a-","ab+","b-","ab-"]
     
     if observation['blood_type']:
-        if observation['blood_type'].strip().lower() not in valid_values:
-            error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'blood_type' , observation['blood_type'], ",".join(["'{}'".format(v) for v in valid_values]))
-            return False, error      
-    
-        observation['blood_type'] = observation['blood_type'].strip().lower()
+        if type(observation['blood_type']).__name__ == type("").__name__:
+                if observation['blood_type'].strip().lower() not in valid_values:
+                    error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'blood_type' , observation['blood_type'], ",".join(["'{}'".format(v) for v in valid_values]))
+                    return False, error      
+                else:
+                    observation['blood_type']= observation['blood_type'].strip().lower()
+        elif type(observation['blood_type']).__name__ == type(1.0).__name__:
+            if pd.isna(observation['blood_type']):
+                observation['blood_type'] = None
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'blood_type', type(observation['blood_type']).__name__,(type(None).__name__))
+                return False, error
     
     return True, ''
     
@@ -634,23 +650,37 @@ def check_A1Cresult(observation):
     valid_values = [None,"none","norm",">8",">7"]
     
     if observation['A1Cresult']:
-        if observation['A1Cresult'].strip().lower() not in valid_values:
-            error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'A1Cresult' , observation['A1Cresult'], ",".join(["'{}'".format(v) for v in valid_values]))
-            return False, error      
-    
-        observation['A1Cresult'] = observation['A1Cresult'].strip().lower()
+        if type(observation['A1Cresult']).__name__ == type("").__name__:
+                if observation['A1Cresult'].strip().lower() not in valid_values:
+                    error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'A1Cresult' , observation['A1Cresult'], ",".join(["'{}'".format(v) for v in valid_values]))
+                    return False, error      
+                else:
+                    observation['A1Cresult']= observation['A1Cresult'].strip().lower()
+        elif type(observation['A1Cresult']).__name__ == type(1.0).__name__:
+            if pd.isna(observation['A1Cresult']):
+                observation['A1Cresult'] = None
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'A1Cresult', type(observation['A1Cresult']).__name__,(type(None).__name__))
+                return False, error
     
     return True, ''
 
 def check_max_glu_serum(observation):
     valid_values = [None,"none","norm",">200",">300"]
-    
+
     if observation['max_glu_serum']:
-        if observation['max_glu_serum'].strip().lower() not in valid_values:
-            error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'max_glu_serum' , observation['max_glu_serum'], ",".join(["'{}'".format(v) for v in valid_values]))
-            return False, error      
-    
-        observation['max_glu_serum'] = observation['max_glu_serum'].strip().lower()
+        if type(observation['max_glu_serum']).__name__ == type("").__name__:
+                if observation['max_glu_serum'].strip().lower() not in valid_values:
+                    error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'max_glu_serum' , observation['max_glu_serum'], ",".join(["'{}'".format(v) for v in valid_values]))
+                    return False, error      
+                else:
+                    observation['max_glu_serum']= observation['max_glu_serum'].strip().lower()
+        elif type(observation['max_glu_serum']).__name__ == type(1.0).__name__:
+            if pd.isna(observation['max_glu_serum']):
+                observation['max_glu_serum'] = None
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'max_glu_serum', type(observation['max_glu_serum']).__name__,(type(None).__name__))
+                return False, error
     
     return True, ''
 
@@ -658,11 +688,18 @@ def check_diuretics(observation):
     valid_values = [None,"yes","no"]
     
     if observation['diuretics']:
-        if observation['diuretics'].strip().lower() not in valid_values:
-            error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'diuretics' , observation['diuretics'], ",".join(["'{}'".format(v) for v in valid_values]))
-            return False, error      
-    
-        observation['diuretics'] = observation['diuretics'].strip().lower()
+        if type(observation['diuretics']).__name__ == type("").__name__:
+                if observation['diuretics'].strip().lower() not in valid_values:
+                    error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'diuretics' , observation['diuretics'], ",".join(["'{}'".format(v) for v in valid_values]))
+                    return False, error      
+                else:
+                    observation['diuretics']= observation['diuretics'].strip().lower()
+        elif type(observation['diuretics']).__name__ == type(1.0).__name__:
+            if pd.isna(observation['diuretics']):
+                observation['diuretics'] = None
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'diuretics', type(observation['diuretics']).__name__,(type(None).__name__))
+                return False, error
     
     return True, ''
 
@@ -670,11 +707,18 @@ def check_insulin(observation):
     valid_values = [None,"yes","no"]
     
     if observation['insulin']:
-        if observation['insulin'].strip().lower() not in valid_values:
-            error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'insulin' , observation['insulin'], ",".join(["'{}'".format(v) for v in valid_values]))
-            return False, error      
-    
-        observation['insulin'] = observation['insulin'].strip().lower()
+        if type(observation['insulin']).__name__ == type("").__name__:
+                if observation['insulin'].strip().lower() not in valid_values:
+                    error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'insulin' , observation['insulin'], ",".join(["'{}'".format(v) for v in valid_values]))
+                    return False, error      
+                else:
+                    observation['insulin']= observation['insulin'].strip().lower()
+        elif type(observation['insulin']).__name__ == type(1.0).__name__:
+            if pd.isna(observation['insulin']):
+                observation['insulin'] = None
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'insulin', type(observation['insulin']).__name__,(type(None).__name__))
+                return False, error
     
     return True, ''
 
@@ -682,11 +726,18 @@ def check_diabetesMed(observation):
     valid_values = [None,"yes","no"]
     
     if observation['diabetesMed']:
-        if observation['diabetesMed'].strip().lower() not in valid_values:
-            error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'diabetesMed' , observation['diabetesMed'], ",".join(["'{}'".format(v) for v in valid_values]))
-            return False, error      
-    
-        observation['diabetesMed'] = observation['diabetesMed'].strip().lower()
+        if type(observation['diabetesMed']).__name__ == type("").__name__:
+                if observation['diabetesMed'].strip().lower() not in valid_values:
+                    error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'diabetesMed' , observation['diabetesMed'], ",".join(["'{}'".format(v) for v in valid_values]))
+                    return False, error      
+                else:
+                    observation['diabetesMed']= observation['diabetesMed'].strip().lower()
+        elif type(observation['diabetesMed']).__name__ == type(1.0).__name__:
+            if pd.isna(observation['diabetesMed']):
+                observation['diabetesMed'] = None
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'diabetesMed', type(observation['diabetesMed']).__name__,(type(None).__name__))
+                return False, error
     
     return True, ''
 
@@ -694,11 +745,18 @@ def check_change(observation):
     valid_values = [None,"ch","no"]
     
     if observation['change']:
-        if observation['change'].strip().lower() not in valid_values:
-            error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'change' , observation['change'], ",".join(["'{}'".format(v) for v in valid_values]))
-            return False, error      
-    
-        observation['change'] = observation['change'].strip().lower()
+        if type(observation['change']).__name__ == type("").__name__:
+                if observation['change'].strip().lower() not in valid_values:
+                    error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'change' , observation['change'], ",".join(["'{}'".format(v) for v in valid_values]))
+                    return False, error      
+                else:
+                    observation['change']= observation['change'].strip().lower()
+        elif type(observation['change']).__name__ == type(1.0).__name__:
+            if pd.isna(observation['change']):
+                observation['change'] = None
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'change', type(observation['change']).__name__,(type(None).__name__))
+                return False, error
     
     return True, ''
 
