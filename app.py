@@ -177,9 +177,9 @@ def check_column_types(observation):
                      'admission_id':[1, 1.0],
                      'patient_id':[1, 1.0], 
                      'race':["" , None], 
-                     'gender':["" , None], 
-                     'age':["" , None], 
-                     'weight':["" , None],
+                     'gender':["" ,1.0, None], 
+                     'age':["" ,1.0, None], 
+                     'weight':["" ,1.0, None],
                      'admission_type_code':[1.0,1, None], 
                      'discharge_disposition_code':[1.0, 1,None],
                      'admission_source_code':[1.0, 1,None], 
@@ -245,26 +245,38 @@ def check_patient_id(observation):
 
 def check_age(observation):
     
-    valid_values = [None,"","?","[70-80)","[60-70)","[50-60)","[80-90)","[40-50)","[30-40)","[90-100)","[20-30)","[10-20)","[0-10)"]
+    #valid_values = [None,"","?","[70-80)","[60-70)","[50-60)","[80-90)","[40-50)","[30-40)","[90-100)","[20-30)","[10-20)","[0-10)"]
     
     if observation['age']:
-        if observation['age'].strip() not in valid_values:
-            error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'age' , observation['age'], ",".join(["'{}'".format(v) for v in valid_values]))
-            return False, error      
-
-        observation['age'] = observation['age'].strip()
+        if type(observation['age']).__name__ == type("").__name__:
+            observation['age'] = observation['age'].strip()
+        elif type(observation['age']).__name__ == type(1.0).__name__:
+            if pd.isna(observation['age']):
+                observation['age'] = None
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'age', type(observation['age']).__name__,(type(None).__name__))
+                return False, error
+            #if observation['age'].strip() not in valid_values:
+            #error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'age' , observation['age'], ",".join(["'{}'".format(v) for v in valid_values]))
+            #return False, error      
     
     return True, ''
 
 def check_weight(observation):
-    valid_values = [None,"","?","[75-100)","[50-75)","[100-125)","[125-150)","[25-50)","[0-25)","[150-175)","[175-200)",">200"]
+    #valid_values = [None,"","?","[75-100)","[50-75)","[100-125)","[125-150)","[25-50)","[0-25)","[150-175)","[175-200)",">200"]
     
     if observation['weight']:
-        if observation['weight'].strip() not in valid_values:
-            error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'weight' , observation['weight'], ",".join(["'{}'".format(v) for v in valid_values]))
-            return False, error      
-
-        observation['weight'] = observation['weight'].strip()
+        if type(observation['weight']).__name__ == type("").__name__:
+            observation['weight'] = observation['weight'].strip()
+        elif type(observation['weight']).__name__ == type(1.0).__name__:
+            if pd.isna(observation['weight']):
+                observation['weight'] = None
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'age', type(observation['weight']).__name__,(type(None).__name__))
+                return False, error
+        #if observation['weight'].strip() not in valid_values:
+            #error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'weight' , observation['weight'], ",".join(["'{}'".format(v) for v in valid_values]))
+            #return False, error      
     
     return True, ''
 
@@ -273,11 +285,14 @@ def check_gender(observation):
     valid_values = [None,"","?","male","female","unknown/invalid"]
     
     if observation['gender']:
-        if observation['gender'].strip().lower() not in valid_values:
-            error = "Invalid value provided for '{}': '{}'. Allowed values are: {}".format( 'gender' , observation['gender'], ",".join(["'{}'".format(v) for v in valid_values]))
-            return False, error      
-    
-        observation['gender'] = observation['gender'].strip().lower()
+        if type(observation['gender']).__name__ == type("").__name__:
+            observation['gender'] = observation['gender'].strip()
+        elif type(observation['gender']).__name__ == type(1.0).__name__:
+            if pd.isna(observation['gender']):
+                observation['gender'] = None
+            else:
+                error = "Invalid datatype provided for '{}': '{}'. Transformation to '{}' is not possible".format( 'age', type(observation['gender']).__name__,(type(None).__name__))
+                return False, error
     
     return True, ''
 
@@ -751,13 +766,13 @@ def predict():
         r.save()
         return response
     
-    """age_ok, error_description = check_age(observation)
+    age_ok, error_description = check_age(observation)
     if not age_ok:
         response = {"admission_id": _id, 'error': error_description}
         r = Request(request=observation, response=response, endpoint='predict', status='error')
         r.save()
         return response
-    
+
     weight_ok, error_description = check_weight(observation)
     if not weight_ok:
         response = {"admission_id": _id, 'error': error_description}
@@ -771,7 +786,7 @@ def predict():
         r = Request(request=observation, response=response, endpoint='predict', status='error')
         r.save()
         return response
-    """
+    
     admission_type_code_ok, error_description = check_admission_type_code(observation)
     if not admission_type_code_ok:
         response = {"admission_id": _id, 'error': error_description}
